@@ -3,8 +3,9 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="description" content="Airbnb turnover cleaning for Queen Creek, San Tan Valley, and surrounding East Valley areas.">
+    <meta name="description" content="Airbnb turnover cleaning from $200 for Queen Creek, San Tan Valley, and surrounding East Valley areas.">
     <title>HandymanCleaners | Airbnb Turnover Cleaning</title>
+    <link rel="icon" href="assets/handymancleaners-logo.jpg">
     <link rel="stylesheet" href="styles.css">
   </head>
   <body>
@@ -13,10 +14,10 @@
         <div class="hero-copy">
           <p class="eyebrow">HandymanCleaners</p>
           <h1>Airbnb turnover cleaning for the East Valley.</h1>
-          <p class="lede">Reliable short-term rental cleanings for Queen Creek, San Tan Valley, and surrounding areas.</p>
+          <p class="lede">Reliable short-term rental cleanings for Queen Creek, San Tan Valley, and surrounding areas. Basic turnovers start at $200.</p>
           <div class="actions">
-            <a class="button primary" href="tel:4808007789">Call Mason</a>
-            <a class="button secondary" href="mailto:handymancleanersaz@gmail.com">Request a Cleaning</a>
+            <a class="button primary" href="#request">Request a Cleaning</a>
+            <a class="button secondary" href="tel:4808007789">Call Mason</a>
           </div>
         </div>
         <img class="logo" src="assets/handymancleaners-logo.jpg" alt="HandymanCleaners Airbnb turnovers logo">
@@ -24,12 +25,12 @@
 
       <section class="details" aria-label="Contact details">
         <article>
-          <h2>Turnover focused</h2>
-          <p>Built for same-day guest transitions, recurring Airbnb cleanings, and property-specific checklists.</p>
+          <h2>Basic turnover</h2>
+          <p>$200 for a standard Airbnb turnover based on our checklist. Same-day turns can include checkout and check-in window details.</p>
         </article>
         <article>
-          <h2>Local coverage</h2>
-          <p>Serving Queen Creek, San Tan Valley, and surrounding East Valley areas.</p>
+          <h2>Handyman add-ons</h2>
+          <p>$100 for the first hour, then $60 for each additional hour for minor maintenance and property fixes.</p>
         </article>
         <article>
           <h2>Contact</h2>
@@ -44,6 +45,126 @@
           <p>Our public Turno profile shows a 5.0 host rating, 5.0 Airbnb guest rating, background check badge, and customer reviews from local vacation rental hosts.</p>
         </div>
         <a class="button primary" href="https://app.turno.com/vacation-rental-cleaner-profile/567383/452264/Queen%20Creek/Arizona/United%20States" target="_blank" rel="noopener">View Turno Profile</a>
+      </section>
+
+      <section class="section-block" aria-label="Cleaning checklist">
+        <div class="section-heading">
+          <p class="eyebrow">Standard turnover checklist</p>
+          <h2>What the $200 basic turnover includes</h2>
+          <p>Our standard service covers an entire home up to 4 bedrooms and 3 bathrooms. Pool cleaning is not included.</p>
+        </div>
+
+        <div class="checklist-grid">
+          <article>
+            <h3>General</h3>
+            <ul>
+              <li>Arrive on time</li>
+              <li>Report damage or missing items</li>
+              <li>Remove all trash</li>
+              <li>Restock provided supplies</li>
+              <li>Final walkthrough before departure</li>
+            </ul>
+          </article>
+          <article>
+            <h3>Living areas</h3>
+            <ul>
+              <li>Dust all surfaces</li>
+              <li>Vacuum and mop floors</li>
+              <li>Sanitize high-touch areas</li>
+              <li>Arrange furniture neatly</li>
+            </ul>
+          </article>
+          <article>
+            <h3>Kitchen</h3>
+            <ul>
+              <li>Wash and put away dishes</li>
+              <li>Clean countertops and cabinets</li>
+              <li>Clean appliance exteriors</li>
+              <li>Clean inside microwave and fridge</li>
+              <li>Empty trash and mop floor</li>
+            </ul>
+          </article>
+          <article>
+            <h3>Bedrooms</h3>
+            <ul>
+              <li>Strip and replace bedding</li>
+              <li>Dust furniture and headboards</li>
+              <li>Vacuum floors and under beds</li>
+              <li>Sanitize switches and handles</li>
+              <li>Make beds hotel-style</li>
+            </ul>
+          </article>
+          <article>
+            <h3>Bathrooms</h3>
+            <ul>
+              <li>Scrub toilets, sinks, tubs, and showers</li>
+              <li>Clean mirrors and chrome</li>
+              <li>Replace towels</li>
+              <li>Refill toiletries</li>
+              <li>Mop floors and empty trash</li>
+            </ul>
+          </article>
+          <article>
+            <h3>Finishing touches</h3>
+            <ul>
+              <li>Wipe washer and dryer</li>
+              <li>Organize linens</li>
+              <li>Blow out patios</li>
+              <li>Clean and arrange outdoor furniture</li>
+              <li>Set thermostat, check lights, send exit video, and secure property</li>
+            </ul>
+          </article>
+        </div>
+      </section>
+
+      <section id="request" class="request" aria-label="Request a cleaning">
+        <div>
+          <p class="eyebrow">Request a cleaning</p>
+          <h2>Send us the turnover details.</h2>
+          <p>Use this to tell us the date, timing, property details, same-day turnover window, and anything extra you want cleaned beyond the standard checklist.</p>
+        </div>
+
+        <form action="mailto:handymancleanersaz@gmail.com" method="post" enctype="text/plain">
+          <label>
+            Name
+            <input name="Name" type="text" autocomplete="name">
+          </label>
+          <label>
+            Phone
+            <input name="Phone" type="tel" autocomplete="tel">
+          </label>
+          <label>
+            Property address or area
+            <input name="Property address or area" type="text" autocomplete="street-address">
+          </label>
+          <label>
+            Cleaning date and time
+            <input name="Cleaning date and time" type="text" placeholder="Example: Jan 12, 11:00 AM">
+          </label>
+          <label>
+            Service type
+            <select name="Service type">
+              <option>Basic Airbnb turnover - $200</option>
+              <option>Same-day turnover</option>
+              <option>Recurring Airbnb cleaning setup</option>
+              <option>Handyman add-on</option>
+            </select>
+          </label>
+          <label>
+            Same-day turnover window
+            <input name="Same-day turnover window" type="text" placeholder="Example: checkout 10 AM, check-in 4 PM">
+          </label>
+          <label class="full">
+            Special instructions
+            <textarea name="Special instructions" rows="4" placeholder="Parking, supplies, linens, trash, photos, host preferences, etc."></textarea>
+          </label>
+          <label class="full">
+            Extra items you want cleaned
+            <textarea name="Extra cleaning requests" rows="5" placeholder="Add anything you want cleaned beyond the standard checklist."></textarea>
+          </label>
+          <p class="form-note">For security, send door or garage codes after we confirm the booking.</p>
+          <button class="button primary" type="submit">Email Request</button>
+        </form>
       </section>
     </main>
   </body>
