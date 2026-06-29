@@ -6,6 +6,10 @@ Static website for HandymanCleaners, focused on Airbnb turnover cleaning in Quee
 
 Planned hosting: Cloudflare Pages.
 
+## Verified Profile
+
+Turno public profile: https://app.turno.com/vacation-rental-cleaner-profile/567383/452264/Queen%20Creek/Arizona/United%20States
+
 ## Contact
 
 - Email: handymancleanersaz@gmail.com
