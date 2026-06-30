@@ -650,6 +650,26 @@ form {
   gap: 14px;
 }
 
+fieldset {
+  display: grid;
+  grid-column: 1 / -1;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 14px;
+  margin: 0;
+  padding: 16px;
+  border: 1px solid var(--line);
+  border-radius: 4px;
+}
+
+legend {
+  padding: 0 8px;
+  color: var(--blue-deep);
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 1.4px;
+  text-transform: uppercase;
+}
+
 label {
   display: grid;
   gap: 7px;
@@ -672,6 +692,12 @@ textarea {
 
 textarea {
   resize: vertical;
+}
+
+.field-note {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 600;
 }
 
 .full,
@@ -784,6 +810,7 @@ footer span:first-child {
   .rate-grid,
   .reviews,
   .checklist-grid,
+  fieldset,
   form {
     grid-template-columns: 1fr;
   }

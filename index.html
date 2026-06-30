@@ -321,44 +321,123 @@
         </div>
 
         <form action="mailto:handymancleanersaz@gmail.com" method="post" enctype="text/plain">
-          <label>
-            Name
-            <input name="Name" type="text" autocomplete="name" required>
-          </label>
-          <label>
-            Phone
-            <input name="Phone" type="tel" autocomplete="tel" required>
-          </label>
-          <label>
-            Property address or area
-            <input name="Property address or area" type="text" autocomplete="street-address" required>
-          </label>
-          <label>
-            Cleaning date and time
-            <input name="Cleaning date and time" type="text" placeholder="Example: Jan 12, 11:00 AM" required>
-          </label>
-          <label>
-            Service type
-            <select name="Service type">
-              <option>Request a Turnover - $200 basic</option>
-              <option>Set Up Calendar Sync</option>
-              <option>Same-day turnover</option>
-              <option>Handyman add-on</option>
-            </select>
-          </label>
-          <label>
-            Same-day turnover window
-            <input name="Same-day turnover window" type="text" placeholder="Example: checkout 10 AM, check-in 4 PM">
-          </label>
-          <label class="full">
-            Special instructions or calendar sync link
-            <textarea name="Special instructions or calendar sync link" rows="4" placeholder="Parking, supplies, linens, trash, photos, host preferences, Airbnb/VRBO/iCal link, etc."></textarea>
-          </label>
-          <label class="full">
-            Extra items you want cleaned
-            <textarea name="Extra cleaning requests" rows="5" placeholder="Add anything you want cleaned beyond the standard checklist."></textarea>
-          </label>
-          <button class="button primary" type="submit">Email Request</button>
+          <fieldset>
+            <legend>Contact</legend>
+            <label>
+              Name
+              <input name="Name" type="text" autocomplete="name" required>
+            </label>
+            <label>
+              Phone
+              <input name="Phone" type="tel" autocomplete="tel" required>
+            </label>
+            <label class="full">
+              Email
+              <input name="Email" type="email" autocomplete="email" placeholder="name@example.com">
+            </label>
+          </fieldset>
+
+          <fieldset>
+            <legend>Turnover details</legend>
+            <label>
+              Request type
+              <select name="Request type" required>
+                <option>One-time turnover - starts at $200</option>
+                <option>Same-day turnover</option>
+                <option>Set up calendar sync</option>
+                <option>Turnover plus handyman add-on</option>
+              </select>
+            </label>
+            <label>
+              Cleaning date
+              <input name="Cleaning date" type="date" required>
+            </label>
+            <label>
+              Preferred arrival time
+              <input name="Preferred arrival time" type="time">
+            </label>
+            <label>
+              Same-day checkout/check-in?
+              <select name="Same-day turnover">
+                <option>No</option>
+                <option>Yes - guest checks out and new guest checks in same day</option>
+              </select>
+            </label>
+            <label>
+              Checkout time
+              <input name="Guest checkout time" type="time">
+            </label>
+            <label>
+              Check-in time
+              <input name="Next guest check-in time" type="time">
+            </label>
+          </fieldset>
+
+          <fieldset>
+            <legend>Property</legend>
+            <label class="full">
+              Property address
+              <input name="Property address" type="text" autocomplete="street-address" placeholder="Street address, city, gate info" required>
+            </label>
+            <label>
+              Bedrooms
+              <input name="Bedrooms" type="number" min="0" step="1" placeholder="4">
+            </label>
+            <label>
+              Bathrooms
+              <input name="Bathrooms" type="number" min="0" step="0.5" placeholder="3">
+            </label>
+            <label>
+              Current condition
+              <select name="Current condition">
+                <option>Normal guest turnover</option>
+                <option>Heavy turnover</option>
+                <option>Deep clean needed</option>
+                <option>Not sure</option>
+              </select>
+            </label>
+            <label>
+              Supplies and linens
+              <select name="Supplies and linens">
+                <option>Supplies and linens are on site</option>
+                <option>We need help restocking</option>
+                <option>Need to discuss</option>
+              </select>
+            </label>
+          </fieldset>
+
+          <fieldset>
+            <legend>Access and checklist</legend>
+            <label>
+              Entry method
+              <select name="Entry method">
+                <option>Door code</option>
+                <option>Garage code</option>
+                <option>Lockbox</option>
+                <option>Host will meet you</option>
+                <option>Send after confirmation</option>
+              </select>
+            </label>
+            <label>
+              Access code
+              <input name="Access code" type="text" placeholder="Optional - you can send after confirmation">
+            </label>
+            <label class="full">
+              Checklist file
+              <input name="Checklist file" type="file" accept=".pdf,.doc,.docx,.txt,.jpg,.jpeg,.png">
+              <span class="field-note">File upload needs a real form backend later; for now, attach it when your email opens.</span>
+            </label>
+            <label class="full">
+              Checklist, special instructions, or calendar link
+              <textarea name="Checklist, special instructions, or calendar link" rows="5" placeholder="Parking, trash day, linens, restock list, photo requests, host preferences, Airbnb/VRBO/iCal link, etc."></textarea>
+            </label>
+            <label class="full">
+              Add-ons or extra cleaning requests
+              <textarea name="Add-ons or extra cleaning requests" rows="4" placeholder="Handyman item, grill, patio, stains, appliance issue, extra laundry, anything beyond the standard checklist."></textarea>
+            </label>
+          </fieldset>
+
+          <button class="button primary" type="submit">Send Turnover Request</button>
         </form>
       </section>
     </main>
