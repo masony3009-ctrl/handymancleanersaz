@@ -369,6 +369,23 @@ article p,
   pointer-events: none;
 }
 
+.compare-contain-after::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image: var(--contain-bg);
+  background-size: cover;
+  background-position: center;
+  filter: blur(14px);
+  transform: scale(1.08);
+  opacity: 0.42;
+}
+
+.compare img.after-contain {
+  object-fit: contain;
+  object-position: center;
+}
+
 .before-wrap {
   position: absolute;
   inset: 0;
