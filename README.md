@@ -1,6 +1,6 @@
 # HandymanCleanersAZ Website
 
-Static website for HandymanCleaners, focused on Airbnb turnover cleaning in Queen Creek, San Tan Valley, and the East Valley.
+Static website for HandymanCleaners, focused on Airbnb turnover cleaning in the Queen Creek, San Tan Valley, and Gilbert area.
 
 ## Hosting
 
