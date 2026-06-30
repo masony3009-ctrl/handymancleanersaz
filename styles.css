@@ -371,16 +371,6 @@ article p,
   pointer-events: none;
 }
 
-.compare-bedroom .after {
-  transform: scale(1.09);
-  transform-origin: 44% 58%;
-}
-
-.compare-bedroom .before {
-  transform: scale(1.06);
-  transform-origin: 45% 54%;
-}
-
 .before-wrap {
   position: absolute;
   inset: 0;
