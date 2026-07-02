@@ -642,6 +642,7 @@ ul {
 .contact-box a {
   color: var(--blue-deep);
   font-weight: 800;
+  overflow-wrap: anywhere;
 }
 
 form {
@@ -673,6 +674,7 @@ legend {
 label {
   display: grid;
   gap: 7px;
+  min-width: 0;
   color: var(--ink);
   font-size: 14px;
   font-weight: 800;
@@ -682,6 +684,7 @@ input,
 select,
 textarea {
   width: 100%;
+  min-width: 0;
   border: 1px solid var(--line);
   border-radius: 4px;
   padding: 12px;
@@ -698,6 +701,23 @@ textarea {
   color: var(--muted);
   font-size: 12px;
   font-weight: 600;
+}
+
+.form-status {
+  grid-column: 1 / -1;
+  margin: 0;
+  padding: 14px 16px;
+  overflow-wrap: anywhere;
+  color: var(--blue-deep);
+  background: var(--wash);
+  border: 1px solid var(--blue);
+  border-radius: 4px;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.form-status[hidden] {
+  display: none;
 }
 
 .full,
