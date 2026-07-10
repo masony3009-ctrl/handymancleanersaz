@@ -13,6 +13,8 @@ const types = {
   ".png": "image/png",
   ".webp": "image/webp",
   ".svg": "image/svg+xml",
+  ".txt": "text/plain",
+  ".xml": "application/xml",
 };
 
 http
