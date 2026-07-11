@@ -153,6 +153,11 @@
       <div class="header-actions">
         <a class="header-phone" href="tel:4808007789">480-800-7789</a>
         <a class="button primary" href="#request">Get a Quote</a>
+        <button class="nav-toggle" type="button" aria-label="Open section menu" aria-expanded="false">
+          <span></span>
+          <span></span>
+          <span></span>
+        </button>
       </div>
     </header>
 
@@ -691,6 +696,24 @@
     </div>
 
     <script>
+      (function () {
+        var toggle = document.querySelector(".nav-toggle");
+        var nav = document.querySelector(".site-header nav");
+        if (!toggle || !nav) return;
+
+        toggle.addEventListener("click", function () {
+          var open = nav.classList.toggle("open");
+          toggle.setAttribute("aria-expanded", open ? "true" : "false");
+        });
+
+        nav.addEventListener("click", function (event) {
+          if (event.target.tagName === "A") {
+            nav.classList.remove("open");
+            toggle.setAttribute("aria-expanded", "false");
+          }
+        });
+      })();
+
       (function () {
         var form = document.getElementById("turnover-form");
         var status = document.getElementById("form-status");
