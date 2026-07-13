@@ -1,0 +1,440 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Request a turnover, recurring cleaning, after-hours office clean, handyman visit, or restocking — one quick form. Same-day turnovers available in Queen Creek, San Tan Valley &amp; Gilbert, AZ.">
+    <title>Request Service or a Free Quote | HandymanCleaners AZ</title>
+    <link rel="canonical" href="https://handymancleanersaz.com/request-service/">
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="Request Service or a Free Quote | HandymanCleaners AZ">
+    <meta property="og:description" content="Request a turnover, recurring cleaning, after-hours office clean, handyman visit, or restocking — one quick form. Same-day turnovers available; call or text if timing is tight.">
+    <meta property="og:url" content="https://handymancleanersaz.com/request-service/">
+    <meta property="og:image" content="https://handymancleanersaz.com/assets/turnover/turnover-01-after.jpg">
+    <meta name="twitter:card" content="summary_large_image">
+    <link rel="icon" href="/assets/handymancleaners-logo.jpg">
+    <link rel="stylesheet" href="/styles.css">
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@graph": [
+          {
+            "@type": "ContactPage",
+            "name": "Request Service — HandymanCleaners",
+            "url": "https://handymancleanersaz.com/request-service/",
+            "about": { "@type": "LocalBusiness", "@id": "https://handymancleanersaz.com/#business" }
+          },
+          {
+            "@type": "BreadcrumbList",
+            "itemListElement": [
+              { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://handymancleanersaz.com/" },
+              { "@type": "ListItem", "position": 2, "name": "Request Service", "item": "https://handymancleanersaz.com/request-service/" }
+            ]
+          }
+        ]
+      }
+    </script>
+  </head>
+  <body>
+    <a class="skip-link" href="#top">Skip to content</a>
+    <header class="site-header">
+      <a class="brand" href="/" aria-label="HandymanCleaners home">
+        <img src="/assets/handymancleaners-logo.jpg" alt="">
+        <span>HandymanCleaners</span>
+      </a>
+      <nav aria-label="Main navigation">
+        <a href="/services/vacation-rental-turnover-cleaning/">Vacation Rental Turnovers</a>
+        <a href="/services/office-cleaning/">Office Cleaning</a>
+        <a href="/services/handyman-property-maintenance/">Handyman</a>
+        <a href="/#areas">Service Areas</a>
+        <a href="/request-service/" aria-current="page">Request Service</a>
+      </nav>
+      <div class="header-actions">
+        <a class="header-phone" href="tel:6502651193">650-265-1193</a>
+        <a class="button primary" href="#request">Get a Quote</a>
+        <button class="nav-toggle" type="button" aria-label="Open section menu" aria-expanded="false">
+          <span></span>
+          <span></span>
+          <span></span>
+        </button>
+      </div>
+    </header>
+
+    <nav class="breadcrumbs" aria-label="Breadcrumb">
+      <ol>
+        <li><a href="/">Home</a></li>
+        <li><span aria-current="page">Request Service</span></li>
+      </ol>
+    </nav>
+
+    <main id="top" tabindex="-1">
+      <section id="request" class="section">
+        <div class="container">
+          <div class="request-grid">
+            <div class="request-copy">
+              <p class="kicker">Get a Quote</p>
+              <h1>Request Cleaning or Handyman Service</h1>
+              <p>Pick your service below and the form fills in the right details. Send it here, or call or text if the timing is tight. This form is an inquiry, not a confirmed booking — we'll follow up to confirm. Please don't enter door, garage, or alarm codes here; we'll arrange property access with you after the booking is confirmed.</p>
+              <div class="contact-box">
+                <a href="tel:6502651193">Mason: 650-265-1193</a>
+                <a href="mailto:handymancleanersaz@gmail.com">handymancleanersaz@gmail.com</a>
+              </div>
+              <ul class="checks" style="margin-top:22px;">
+                <li>Same-day turnovers available — request by 9am</li>
+                <li>Fast response from the owners directly</li>
+                <li>Serving Queen Creek, San Tan Valley &amp; Gilbert</li>
+              </ul>
+            </div>
+
+            <form id="service-form" action="mailto:handymancleanersaz@gmail.com" method="post" enctype="text/plain">
+              <fieldset>
+                <legend>Contact</legend>
+                <label>
+                  Name
+                  <input name="Name" type="text" autocomplete="name" required>
+                </label>
+                <label>
+                  Phone
+                  <input name="Phone" type="tel" autocomplete="tel" required>
+                </label>
+                <label class="full">
+                  Email
+                  <input name="Email" type="email" autocomplete="email" placeholder="name@example.com">
+                </label>
+                <label class="full">
+                  What do you need?
+                  <select name="Service type" id="service-type" required>
+                    <option value="turnover">Vacation rental turnover cleaning (one-time)</option>
+                    <option value="recurring">Recurring vacation rental cleaning / calendar sync</option>
+                    <option value="office">After-hours office cleaning</option>
+                    <option value="handyman">Handyman / light maintenance</option>
+                    <option value="restocking">Supply restocking</option>
+                    <option value="other">Something else / not sure</option>
+                  </select>
+                </label>
+              </fieldset>
+
+              <!-- Turnover + recurring: timing -->
+              <fieldset class="svc-fields" data-service="turnover recurring">
+                <legend>Turnover details</legend>
+                <label>
+                  Cleaning date
+                  <input name="Cleaning date" type="date" data-req>
+                </label>
+                <label>
+                  Preferred arrival time
+                  <input name="Preferred arrival time" type="time">
+                </label>
+                <label>
+                  Same-day checkout/check-in?
+                  <select name="Same-day turnover">
+                    <option>No</option>
+                    <option>Yes - guest checks out and new guest checks in same day</option>
+                  </select>
+                </label>
+                <label>
+                  Checkout time
+                  <input name="Guest checkout time" type="time">
+                </label>
+                <label>
+                  Next guest check-in time
+                  <input name="Next guest check-in time" type="time">
+                </label>
+              </fieldset>
+
+              <!-- Turnover + recurring: property -->
+              <fieldset class="svc-fields" data-service="turnover recurring">
+                <legend>Property</legend>
+                <label class="full">
+                  Property address
+                  <input name="Property address" type="text" autocomplete="street-address" placeholder="Street address, city, gate info" data-req>
+                </label>
+                <label>
+                  Bedrooms
+                  <input name="Bedrooms" type="number" min="0" step="1" placeholder="4">
+                </label>
+                <label>
+                  Bathrooms
+                  <input name="Bathrooms" type="number" min="0" step="0.5" placeholder="3">
+                </label>
+                <label>
+                  Current condition
+                  <select name="Current condition">
+                    <option>Normal guest turnover</option>
+                    <option>Heavy turnover</option>
+                    <option>Not sure</option>
+                  </select>
+                </label>
+                <label>
+                  Supplies and linens
+                  <select name="Supplies and linens">
+                    <option>Supplies and linens are on site</option>
+                    <option>Host ships supplies to HandymanCleaners</option>
+                    <option>Host funds HandymanCleaners to buy supplies</option>
+                    <option>We need help restocking</option>
+                    <option>Need to discuss</option>
+                  </select>
+                </label>
+              </fieldset>
+
+              <!-- Recurring only: calendar -->
+              <fieldset class="svc-fields" data-service="recurring">
+                <legend>Calendar sync</legend>
+                <label class="full checkbox-row">
+                  <input name="Calendar sync requested" type="checkbox" value="Yes - will share calendar link securely after confirmation">
+                  <span>I'd like calendar-sync scheduling. I'll share my Airbnb, Vrbo, or iCal link securely after we confirm — not on this form.</span>
+                </label>
+              </fieldset>
+
+              <!-- Turnover + recurring: access & checklist -->
+              <fieldset class="svc-fields" data-service="turnover recurring">
+                <legend>Checklist and instructions</legend>
+                <label class="full">
+                  Checklist file
+                  <input name="Checklist file" type="file" accept=".pdf,.doc,.docx,.txt,.jpg,.jpeg,.png">
+                  <span class="field-note">Pressing send opens your email app — attach the file there before sending.</span>
+                </label>
+                <label class="full">
+                  Checklist, special instructions, or notes
+                  <textarea name="Checklist or notes" rows="4" placeholder="Parking, trash day, linens, restock list, photo requests, host preferences, etc."></textarea>
+                </label>
+                <label class="full">
+                  Add-ons or extra requests
+                  <textarea name="Add-ons or extra requests" rows="3" placeholder="Supply refills, handyman item, grill, patio, stains, appliance issue, extra laundry, anything beyond the standard checklist."></textarea>
+                </label>
+              </fieldset>
+
+              <!-- Office -->
+              <fieldset class="svc-fields" data-service="office">
+                <legend>Office details</legend>
+                <label>
+                  Business name
+                  <input name="Business name" type="text" autocomplete="organization">
+                </label>
+                <label>
+                  Approx. square footage
+                  <input name="Approx square footage" type="text" placeholder="e.g. 1,200 sq ft">
+                </label>
+                <label class="full">
+                  Office address
+                  <input name="Office address" type="text" autocomplete="street-address" placeholder="Street address, city, suite">
+                </label>
+                <label>
+                  Cleaning frequency
+                  <select name="Cleaning frequency">
+                    <option>Weekly</option>
+                    <option>2-3 times per week</option>
+                    <option>Monthly</option>
+                    <option>One-time</option>
+                    <option>Not sure yet</option>
+                  </select>
+                </label>
+                <label>
+                  Preferred after-hours window
+                  <input name="Preferred after-hours window" type="text" placeholder="e.g. after 6pm weekdays">
+                </label>
+                <label class="full">
+                  Cleaning products
+                  <select name="Cleaning products">
+                    <option>We bring our own products and equipment</option>
+                    <option>Use our on-site products, please</option>
+                    <option>Not sure - let's discuss</option>
+                  </select>
+                </label>
+                <label class="full">
+                  Tasks needed or notes
+                  <textarea name="Office tasks or notes" rows="4" placeholder="Restrooms, breakroom, desks, reception, floors, trash, high-touch surfaces, restocking, anything specific."></textarea>
+                </label>
+              </fieldset>
+
+              <!-- Handyman -->
+              <fieldset class="svc-fields" data-service="handyman">
+                <legend>Handyman details</legend>
+                <label class="full">
+                  Property or office address
+                  <input name="Handyman address" type="text" autocomplete="street-address" placeholder="Street address, city">
+                </label>
+                <label>
+                  Preferred date
+                  <input name="Handyman preferred date" type="date">
+                </label>
+                <label class="full">
+                  Describe the fixes
+                  <textarea name="Handyman description" rows="4" placeholder="Light fixes and upkeep — hanging items, bulbs, filters, tightening fixtures, furniture assembly, small adjustments, etc."></textarea>
+                </label>
+              </fieldset>
+
+              <!-- Restocking -->
+              <fieldset class="svc-fields" data-service="restocking">
+                <legend>Restocking details</legend>
+                <label>
+                  Property type
+                  <select name="Restock property type">
+                    <option>Vacation rental</option>
+                    <option>Office</option>
+                  </select>
+                </label>
+                <label>
+                  Supply handling
+                  <select name="Restock supply handling">
+                    <option>I'll ship supplies to you</option>
+                    <option>Fund a restock run</option>
+                    <option>Not sure - let's discuss</option>
+                  </select>
+                </label>
+                <label class="full">
+                  Property or office address
+                  <input name="Restock address" type="text" autocomplete="street-address" placeholder="Street address, city">
+                </label>
+                <label class="full">
+                  What to keep stocked
+                  <textarea name="Restock list" rows="4" placeholder="Paper goods, soaps, coffee, trash bags, breakroom or restroom basics, guest welcome items, par levels, etc."></textarea>
+                </label>
+              </fieldset>
+
+              <!-- Other -->
+              <fieldset class="svc-fields" data-service="other">
+                <legend>Tell us more</legend>
+                <label class="full">
+                  Property or office address
+                  <input name="Address" type="text" autocomplete="street-address" placeholder="Street address, city">
+                </label>
+                <label class="full">
+                  How can we help?
+                  <textarea name="Message" rows="5" placeholder="Tell us what you need and we'll get right back to you."></textarea>
+                </label>
+              </fieldset>
+
+              <div class="form-consent">
+                <p class="form-notice">By submitting this form, you agree that HandymanCleaners may use this information to respond to your request and contact you by phone, text, or email about the requested service. This is an inquiry, not a confirmed appointment.</p>
+                <label class="checkbox-row">
+                  <input name="Acknowledgment" type="checkbox" value="Agreed to Privacy Policy and Terms" required>
+                  <span>I have read and agree to the <a href="/privacy/">Privacy Policy</a> and <a href="/terms/">Terms</a>.&nbsp;<span class="req" aria-hidden="true">*</span></span>
+                </label>
+              </div>
+              <button class="button primary" type="submit">Send Request</button>
+              <noscript>
+                <p class="form-notice">This form needs JavaScript to fill in your email. If it isn't working, email your request details to <a href="mailto:handymancleanersaz@gmail.com">handymancleanersaz@gmail.com</a> or call or text <a href="tel:6502651193">650-265-1193</a>.</p>
+              </noscript>
+              <p class="form-status" id="form-status" role="status" aria-live="polite" hidden>Your email app should now be open with this request filled in — just press send. If nothing opened, call or text Mason at <a href="tel:6502651193">650-265-1193</a> or email <a href="mailto:handymancleanersaz@gmail.com">handymancleanersaz@gmail.com</a>.</p>
+              <p class="form-disclaimer">HandymanCleaners is an independent third party and is not endorsed by or associated with Airbnb, Inc. or its affiliates. Airbnb and Vrbo are trademarks of their respective owners.</p>
+            </form>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer>
+      <div class="footer-grid">
+        <div>
+          <p class="footer-brand">HandymanCleaners</p>
+          <p>Father-and-son vacation rental turnover cleaning, after-hours office cleaning, and handyman support for the Southeast Valley.</p>
+          <a href="https://app.turno.com/vacation-rental-cleaner-profile/567383/452264/Queen%20Creek/Arizona/United%20States" target="_blank" rel="noopener">Verified Turno Profile</a>
+        </div>
+        <div>
+          <h3>Services</h3>
+          <a href="/services/vacation-rental-turnover-cleaning/">Vacation Rental Turnover Cleaning</a>
+          <a href="/services/recurring-vacation-rental-cleaning/">Recurring Vacation Rental Cleaning</a>
+          <a href="/services/office-cleaning/">Office Cleaning</a>
+          <a href="/services/handyman-property-maintenance/">Handyman &amp; Maintenance</a>
+          <a href="/services/supply-restocking/">Supply Restocking</a>
+        </div>
+        <div>
+          <h3>Contact Us</h3>
+          <a href="tel:6502651193">Mason: 650-265-1193</a>
+          <a href="mailto:handymancleanersaz@gmail.com">handymancleanersaz@gmail.com</a>
+          <a href="/request-service/">Request a Quote</a>
+        </div>
+        <div>
+          <h3>Areas We Serve</h3>
+          <a href="/locations/queen-creek/">Queen Creek</a>
+          <a href="/locations/san-tan-valley/">San Tan Valley</a>
+          <a href="/locations/gilbert/">Gilbert</a>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <nav class="footer-legal" aria-label="Legal">
+          <a href="/privacy/">Privacy Policy</a>
+          <a href="/terms/">Terms</a>
+          <a href="/accessibility/">Accessibility</a>
+        </nav>
+        <p class="footer-disclaimer">HandymanCleaners is an independent third party and is not endorsed by or associated with Airbnb, Inc. or its affiliates. Airbnb and Vrbo are trademarks of their respective owners.</p>
+        <span>&copy; 2026 HandymanCleaners &middot; Queen Creek, AZ</span>
+      </div>
+    </footer>
+
+    <div class="mobile-sticky">
+      <a href="tel:6502651193">Call</a>
+      <a href="#request">Get a Quote</a>
+    </div>
+
+    <script>
+      (function () {
+        var form = document.getElementById("service-form");
+        var status = document.getElementById("form-status");
+        if (!form || !status) return;
+
+        var svcSelect = form.elements["Service type"];
+        var groups = form.querySelectorAll(".svc-fields");
+
+        function syncFields() {
+          var svc = svcSelect.value;
+          Array.prototype.forEach.call(groups, function (group) {
+            var applies = group.getAttribute("data-service").split(" ").indexOf(svc) !== -1;
+            group.hidden = !applies;
+            group.disabled = !applies;
+            // Key fields are required only while their service group is visible.
+            Array.prototype.forEach.call(group.querySelectorAll("[data-req]"), function (field) {
+              field.required = applies;
+            });
+          });
+        }
+
+        svcSelect.addEventListener("change", syncFields);
+        // Re-sync after back/forward navigation restores form state (bfcache or re-parse).
+        window.addEventListener("pageshow", syncFields);
+        syncFields();
+
+        function buildBody() {
+          var lines = [];
+          Array.prototype.forEach.call(form.elements, function (field) {
+            if (!field.name || field.type === "submit") return;
+            if (field.closest(".svc-fields[hidden]")) return;
+            if (field.type === "file") {
+              if (field.files && field.files.length) {
+                lines.push(field.name + ": " + field.files[0].name + " (please attach this file to the email before sending)");
+              }
+              return;
+            }
+            if (field.type === "checkbox") {
+              if (field.checked) lines.push(field.name + ": " + (field.value && field.value !== "on" ? field.value : "Yes"));
+              return;
+            }
+            var value;
+            if (field.tagName === "SELECT" && field.selectedIndex > -1) {
+              value = field.options[field.selectedIndex].text.trim();
+            } else {
+              value = (field.value || "").trim();
+            }
+            if (value) lines.push(field.name + ": " + value);
+          });
+          return lines.join("\n");
+        }
+
+        form.addEventListener("submit", function (event) {
+          event.preventDefault();
+          var label = svcSelect.options[svcSelect.selectedIndex].text;
+          var dateField = form.elements["Cleaning date"];
+          var date = dateField && !dateField.closest(".svc-fields[hidden]") ? dateField.value : "";
+          var subject = "Service request - " + label + (date ? " - " + date : "");
+          window.location.href = "mailto:handymancleanersaz@gmail.com" +
+            "?subject=" + encodeURIComponent(subject) +
+            "&body=" + encodeURIComponent(buildBody());
+          status.hidden = false;
+          status.scrollIntoView({ block: "nearest", behavior: "smooth" });
+        });
+      })();
+    </script>
+    <script src="/site.js" defer></script>
+  </body>
+</html>

@@ -1,0 +1,9 @@
+# Internal compliance notes — never publish to the public repo or website
+COMPLIANCE_NOTES.md
+
+# Agent-local configuration — never commit
+.claude/
+
+# OS / editor cruft
+.DS_Store
+Thumbs.db

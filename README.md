@@ -1,6 +1,6 @@
 # HandymanCleanersAZ Website
 
-Static website for HandymanCleaners, focused on Airbnb turnover cleaning in the Queen Creek, San Tan Valley, and Gilbert area.
+Static website for HandymanCleaners — vacation rental turnover cleaning, after-hours office cleaning, supply restocking, and light handyman service in the Queen Creek, San Tan Valley, and Gilbert area.
 
 ## Hosting
 
@@ -13,5 +13,4 @@ Turno public profile: https://app.turno.com/vacation-rental-cleaner-profile/5673
 ## Contact
 
 - Email: handymancleanersaz@gmail.com
-- Mason: 480-800-7789
-- Second line: 480-415-1001
+- Mason: 650-265-1193
