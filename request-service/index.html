@@ -143,11 +143,11 @@
                 <legend>Turnover details</legend>
                 <label>
                   Cleaning date
-                  <input name="Cleaning date" type="date" data-req>
+                  <input name="Cleaning date" type="text" data-picker="date" data-req readonly placeholder="Select a date" autocomplete="off">
                 </label>
                 <label>
                   Preferred arrival time
-                  <input name="Preferred arrival time" type="time">
+                  <input name="Preferred arrival time" type="text" data-picker="time" readonly placeholder="Select a time" autocomplete="off">
                 </label>
                 <label>
                   Same-day checkout/check-in?
@@ -158,11 +158,11 @@
                 </label>
                 <label>
                   Checkout time
-                  <input name="Guest checkout time" type="time">
+                  <input name="Guest checkout time" type="text" data-picker="time" readonly placeholder="Select a time" autocomplete="off">
                 </label>
                 <label>
                   Next guest check-in time
-                  <input name="Next guest check-in time" type="time">
+                  <input name="Next guest check-in time" type="text" data-picker="time" readonly placeholder="Select a time" autocomplete="off">
                 </label>
               </fieldset>
 
@@ -233,7 +233,7 @@
                 </label>
                 <label>
                   Preferred date
-                  <input name="Handyman preferred date" type="date">
+                  <input name="Handyman preferred date" type="text" data-picker="date" readonly placeholder="Select a date" autocomplete="off">
                 </label>
                 <label class="full">
                   Describe the fixes
@@ -364,11 +364,6 @@
         window.addEventListener("pageshow", syncFields);
         syncFields();
 
-        // Block past dates in every date field.
-        var t = new Date();
-        var pad = function (n) { return (n < 10 ? "0" : "") + n; };
-        var todayStr = t.getFullYear() + "-" + pad(t.getMonth() + 1) + "-" + pad(t.getDate());
-        Array.prototype.forEach.call(form.querySelectorAll("input[type=date]"), function (d) { d.min = todayStr; });
 
         function collectFields() {
           var data = {};
@@ -405,6 +400,17 @@
 
         form.addEventListener("submit", function (event) {
           event.preventDefault();
+          // Custom date/time pickers are readonly (barred from native validation),
+          // so enforce any visible required picker field here.
+          var missing = null;
+          Array.prototype.forEach.call(form.querySelectorAll("[data-req]"), function (f) {
+            if (!missing && !f.closest(".svc-fields[hidden]") && !(f.value || "").trim()) missing = f;
+          });
+          if (missing) {
+            setStatus("Please choose a cleaning date so we can check availability.", true);
+            missing.focus();
+            return;
+          }
           var data = collectFields();
 
           submitBtn.disabled = true;
@@ -422,6 +428,7 @@
           }).then(function (r) {
             if (r.httpOk && r.body.ok) {
               form.reset();
+              Array.prototype.forEach.call(form.querySelectorAll("[data-picker]"), function (i) { i.value = ""; delete i.dataset.iso; });
               syncFields();
               setStatus("Request sent! We have it and will get back to you shortly by phone, text, or email.", false);
               submitBtn.textContent = "Request Sent";
@@ -443,6 +450,150 @@
             submitBtn.textContent = "Send Request";
           }).finally(function () {
             form.removeAttribute("aria-busy");
+          });
+        });
+      })();
+    </script>
+    <script>
+      // Custom branded date & time pickers (replace the dated native popups).
+      (function () {
+        var form = document.getElementById("service-form");
+        if (!form) return;
+        var MONTHS = ["January","February","March","April","May","June","July","August","September","October","November","December"];
+        var MON3 = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+        var WDAY = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
+        var DOW = ["Su","Mo","Tu","We","Th","Fr","Sa"];
+        var CHEV = {
+          prev: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>',
+          next: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>'
+        };
+        var open = null;
+
+        function two(n) { return (n < 10 ? "0" : "") + n; }
+        function iso(d) { return d.getFullYear() + "-" + two(d.getMonth() + 1) + "-" + two(d.getDate()); }
+        function pretty(d) { return WDAY[d.getDay()] + ", " + MON3[d.getMonth()] + " " + d.getDate() + ", " + d.getFullYear(); }
+        function parseIso(s) { var p = s.split("-"); return new Date(+p[0], (+p[1]) - 1, +p[2]); }
+        function fmtTime(h, m) { var ap = h < 12 ? "AM" : "PM"; var hh = h % 12; if (hh === 0) hh = 12; return hh + ":" + two(m) + " " + ap; }
+
+        function close() {
+          if (!open) return;
+          if (open.pop.parentNode) open.pop.parentNode.removeChild(open.pop);
+          open.input.setAttribute("aria-expanded", "false");
+          document.removeEventListener("mousedown", onDoc, true);
+          document.removeEventListener("keydown", onKey, true);
+          window.removeEventListener("resize", close);
+          open = null;
+        }
+        function onDoc(e) { if (open && !open.pop.contains(e.target) && e.target !== open.input) close(); }
+        function onKey(e) { if (e.key === "Escape") { var i = open && open.input; close(); if (i) i.focus(); } }
+
+        function place(pop, input) {
+          document.body.appendChild(pop);
+          var r = input.getBoundingClientRect();
+          pop.style.top = (window.scrollY + r.bottom + 6) + "px";
+          pop.style.left = (window.scrollX + r.left) + "px";
+          var pr = pop.getBoundingClientRect();
+          if (pr.right > window.innerWidth - 8) {
+            pop.style.left = (window.scrollX + Math.max(8, window.innerWidth - pr.width - 8)) + "px";
+          }
+        }
+        function navBtn(dir) {
+          var b = document.createElement("button");
+          b.type = "button"; b.className = "dtp-nav";
+          b.setAttribute("aria-label", dir === "prev" ? "Previous month" : "Next month");
+          b.innerHTML = CHEV[dir];
+          return b;
+        }
+        function arm(pop, input) {
+          open = { pop: pop, input: input };
+          input.setAttribute("aria-expanded", "true");
+          setTimeout(function () {
+            document.addEventListener("mousedown", onDoc, true);
+            document.addEventListener("keydown", onKey, true);
+            window.addEventListener("resize", close);
+          }, 0);
+        }
+
+        function openDate(input) {
+          var today = new Date(); today.setHours(0, 0, 0, 0);
+          var selected = input.dataset.iso ? parseIso(input.dataset.iso) : null;
+          var view = new Date(selected || today); view.setDate(1);
+          var pop = document.createElement("div"); pop.className = "dtp";
+          pop.setAttribute("role", "dialog"); pop.setAttribute("aria-label", "Choose a date");
+          render();
+          function render() {
+            pop.innerHTML = "";
+            var head = document.createElement("div"); head.className = "dtp-head";
+            var prev = navBtn("prev");
+            var title = document.createElement("div"); title.className = "dtp-title";
+            title.textContent = MONTHS[view.getMonth()] + " " + view.getFullYear();
+            var next = navBtn("next");
+            var prevMonthLast = new Date(view.getFullYear(), view.getMonth(), 0);
+            if (prevMonthLast < today) prev.disabled = true;
+            prev.onclick = function () { view.setMonth(view.getMonth() - 1); render(); };
+            next.onclick = function () { view.setMonth(view.getMonth() + 1); render(); };
+            head.appendChild(prev); head.appendChild(title); head.appendChild(next);
+            pop.appendChild(head);
+            var dow = document.createElement("div"); dow.className = "dtp-dow";
+            DOW.forEach(function (d) { var s = document.createElement("span"); s.textContent = d; dow.appendChild(s); });
+            pop.appendChild(dow);
+            var grid = document.createElement("div"); grid.className = "dtp-grid";
+            var start = new Date(view.getFullYear(), view.getMonth(), 1).getDay();
+            var count = new Date(view.getFullYear(), view.getMonth() + 1, 0).getDate();
+            for (var i = 0; i < start; i++) {
+              var bl = document.createElement("button"); bl.type = "button"; bl.className = "dtp-day blank"; bl.tabIndex = -1; grid.appendChild(bl);
+            }
+            for (var day = 1; day <= count; day++) {
+              var d = new Date(view.getFullYear(), view.getMonth(), day);
+              var btn = document.createElement("button"); btn.type = "button"; btn.className = "dtp-day"; btn.textContent = day;
+              btn.setAttribute("aria-label", pretty(d));
+              if (d < today) btn.disabled = true;
+              if (iso(d) === iso(today)) btn.classList.add("today");
+              if (selected && iso(d) === iso(selected)) btn.classList.add("sel");
+              (function (dd) { btn.onclick = function () { pick(dd); }; })(d);
+              grid.appendChild(btn);
+            }
+            pop.appendChild(grid);
+          }
+          function pick(d) {
+            input.value = pretty(d); input.dataset.iso = iso(d);
+            input.dispatchEvent(new Event("change", { bubbles: true }));
+            close(); input.focus();
+          }
+          place(pop, input); arm(pop, input);
+          var f = pop.querySelector(".dtp-day:not(:disabled)"); if (f) f.focus();
+        }
+
+        function openTime(input) {
+          var pop = document.createElement("div"); pop.className = "dtp";
+          pop.setAttribute("role", "dialog"); pop.setAttribute("aria-label", "Choose a time");
+          var list = document.createElement("div"); list.className = "dtp-times";
+          for (var h = 0; h < 24; h++) {
+            for (var m = 0; m < 60; m += 30) {
+              var label = fmtTime(h, m);
+              var btn = document.createElement("button"); btn.type = "button"; btn.className = "dtp-time"; btn.textContent = label;
+              if (label === input.value) btn.classList.add("sel");
+              (function (l) { btn.onclick = function () { input.value = l; input.dispatchEvent(new Event("change", { bubbles: true })); close(); input.focus(); }; })(label);
+              list.appendChild(btn);
+            }
+          }
+          pop.appendChild(list); place(pop, input); arm(pop, input);
+          var sel = list.querySelector(".sel"); if (sel) sel.scrollIntoView({ block: "center" }); else list.scrollTop = 12 * 34;
+        }
+
+        function toggle(input) {
+          var reopen = open && open.input === input;
+          close();
+          if (reopen) return;
+          if (input.getAttribute("data-picker") === "date") openDate(input); else openTime(input);
+        }
+
+        Array.prototype.forEach.call(form.querySelectorAll("input[data-picker]"), function (input) {
+          input.setAttribute("aria-haspopup", "dialog");
+          input.setAttribute("aria-expanded", "false");
+          input.addEventListener("click", function () { toggle(input); });
+          input.addEventListener("keydown", function (e) {
+            if (e.key === "Enter" || e.key === " ") { e.preventDefault(); toggle(input); }
           });
         });
       })();
