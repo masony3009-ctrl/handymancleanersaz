@@ -1786,6 +1786,70 @@ textarea:focus-visible,
   overflow-wrap: anywhere;
 }
 
+/* Guest reviews proof section ("See What the Guests Are Saying") */
+.guest-proof {
+  display: grid;
+  grid-template-columns: 0.9fr 1.1fr;
+  gap: clamp(24px, 4vw, 44px);
+  align-items: center;
+}
+
+.guest-proof > img {
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
+  border-radius: 4px;
+  box-shadow: var(--shadow);
+}
+
+.guest-quotes {
+  display: grid;
+  gap: 14px;
+}
+
+.guest-quotes blockquote {
+  margin: 0;
+  padding: 18px 20px;
+  background: #ffffff;
+  border: 1px solid var(--line);
+  border-left: 4px solid var(--teal);
+  border-radius: 4px;
+}
+
+.guest-quotes blockquote p {
+  margin-bottom: 8px;
+  color: var(--ink);
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 1.5;
+}
+
+.guest-quotes cite {
+  color: var(--muted);
+  font-size: 12.5px;
+  font-style: normal;
+  font-weight: 700;
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
+}
+
+.guest-proof-cta {
+  margin-top: 4px;
+}
+
+.guest-note {
+  margin: 0;
+  color: var(--muted);
+  font-size: 12.5px;
+  line-height: 1.5;
+}
+
+@media (max-width: 980px) {
+  .guest-proof {
+    grid-template-columns: 1fr;
+  }
+}
+
 /* Fix clipped brand name on very narrow screens (~390px) */
 @media (max-width: 430px) {
   .brand span {
