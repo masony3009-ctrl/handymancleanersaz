@@ -3,12 +3,12 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="description" content="Request a turnover, recurring cleaning, after-hours office clean, handyman visit, or restocking — one quick form. Same-day turnovers available in Queen Creek, San Tan Valley &amp; Gilbert, AZ.">
+    <meta name="description" content="Request a turnover, recurring cleaning, handyman visit, or restocking — one quick form. Same-day turnovers available in Queen Creek, San Tan Valley &amp; Gilbert, AZ.">
     <title>Request Service or a Free Quote | HandymanCleaners AZ</title>
     <link rel="canonical" href="https://handymancleanersaz.com/request-service/">
     <meta property="og:type" content="website">
     <meta property="og:title" content="Request Service or a Free Quote | HandymanCleaners AZ">
-    <meta property="og:description" content="Request a turnover, recurring cleaning, after-hours office clean, handyman visit, or restocking — one quick form. Same-day turnovers available; call or text if timing is tight.">
+    <meta property="og:description" content="Request a turnover, recurring cleaning, handyman visit, or restocking — one quick form. Same-day turnovers available; call or text if timing is tight.">
     <meta property="og:url" content="https://handymancleanersaz.com/request-service/">
     <meta property="og:image" content="https://handymancleanersaz.com/assets/turnover/turnover-01-after.jpg">
     <meta name="twitter:card" content="summary_large_image">
@@ -44,7 +44,6 @@
       </a>
       <nav aria-label="Main navigation">
         <a href="/services/vacation-rental-turnover-cleaning/">Vacation Rental Turnovers</a>
-        <a href="/services/office-cleaning/">Office Cleaning</a>
         <a href="/services/handyman-property-maintenance/">Handyman</a>
         <a href="/#areas">Service Areas</a>
         <a href="/request-service/" aria-current="page">Request Service</a>
@@ -106,17 +105,37 @@
                   Email
                   <input name="Email" type="email" autocomplete="email" placeholder="name@example.com">
                 </label>
-                <label class="full">
-                  What do you need?
-                  <select name="Service type" id="service-type" required>
-                    <option value="turnover">Vacation rental turnover cleaning (one-time)</option>
-                    <option value="recurring">Recurring vacation rental cleaning / calendar sync</option>
-                    <option value="office">After-hours office cleaning</option>
-                    <option value="handyman">Handyman / light maintenance</option>
-                    <option value="restocking">Supply restocking</option>
-                    <option value="other">Something else / not sure</option>
-                  </select>
-                </label>
+              </fieldset>
+
+              <fieldset class="svc-picker">
+                <legend>What do you need?</legend>
+                <div class="svc-options" role="radiogroup" aria-label="Service type">
+                  <label class="svc-option">
+                    <input type="radio" name="Service type" value="turnover" data-label="Vacation rental turnover cleaning (one-time)" required checked>
+                    <span class="svc-ic" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3 18v-6a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v6"/><path d="M3 18h18"/><path d="M6 10V8a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v2"/><path d="M4 21v-3"/><path d="M20 21v-3"/></svg></span>
+                    <span class="svc-tx"><strong>Turnover cleaning</strong><small>One-time vacation rental turnover</small></span>
+                  </label>
+                  <label class="svc-option">
+                    <input type="radio" name="Service type" value="recurring" data-label="Recurring vacation rental cleaning / calendar sync">
+                    <span class="svc-ic" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M17 2l4 4-4 4"/><path d="M3 11v-1a4 4 0 0 1 4-4h14"/><path d="M7 22l-4-4 4-4"/><path d="M21 13v1a4 4 0 0 1-4 4H3"/></svg></span>
+                    <span class="svc-tx"><strong>Recurring cleaning</strong><small>Automated turnovers, calendar sync</small></span>
+                  </label>
+                  <label class="svc-option">
+                    <input type="radio" name="Service type" value="handyman" data-label="Handyman / light maintenance">
+                    <span class="svc-ic" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a4 4 0 0 0-5.4 5.3L3 18l3 3 6.4-6.3a4 4 0 0 0 5.3-5.4l-2.6 2.6-2.1-2.1z"/></svg></span>
+                    <span class="svc-tx"><strong>Handyman</strong><small>Light fixes &amp; maintenance</small></span>
+                  </label>
+                  <label class="svc-option">
+                    <input type="radio" name="Service type" value="restocking" data-label="Supply restocking">
+                    <span class="svc-ic" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M21 8l-9-5-9 5 9 5 9-5z"/><path d="M3 8v8l9 5 9-5V8"/><path d="M12 13v8"/></svg></span>
+                    <span class="svc-tx"><strong>Supply restocking</strong><small>Keep guest basics stocked</small></span>
+                  </label>
+                  <label class="svc-option wide">
+                    <input type="radio" name="Service type" value="other" data-label="Something else / not sure">
+                    <span class="svc-ic" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></span>
+                    <span class="svc-tx"><strong>Something else</strong><small>Not sure? Tell us what you need</small></span>
+                  </label>
+                </div>
               </fieldset>
 
               <!-- Turnover + recurring: timing -->
@@ -205,54 +224,11 @@
                 </label>
               </fieldset>
 
-              <!-- Office -->
-              <fieldset class="svc-fields" data-service="office">
-                <legend>Office details</legend>
-                <label>
-                  Business name
-                  <input name="Business name" type="text" autocomplete="organization">
-                </label>
-                <label>
-                  Approx. square footage
-                  <input name="Approx square footage" type="text" placeholder="e.g. 1,200 sq ft">
-                </label>
-                <label class="full">
-                  Office address
-                  <input name="Office address" type="text" autocomplete="street-address" placeholder="Street address, city, suite">
-                </label>
-                <label>
-                  Cleaning frequency
-                  <select name="Cleaning frequency">
-                    <option>Weekly</option>
-                    <option>2-3 times per week</option>
-                    <option>Monthly</option>
-                    <option>One-time</option>
-                    <option>Not sure yet</option>
-                  </select>
-                </label>
-                <label>
-                  Preferred after-hours window
-                  <input name="Preferred after-hours window" type="text" placeholder="e.g. after 6pm weekdays">
-                </label>
-                <label class="full">
-                  Cleaning products
-                  <select name="Cleaning products">
-                    <option>We bring our own products and equipment</option>
-                    <option>Use our on-site products, please</option>
-                    <option>Not sure - let's discuss</option>
-                  </select>
-                </label>
-                <label class="full">
-                  Tasks needed or notes
-                  <textarea name="Office tasks or notes" rows="4" placeholder="Restrooms, breakroom, desks, reception, floors, trash, high-touch surfaces, restocking, anything specific."></textarea>
-                </label>
-              </fieldset>
-
               <!-- Handyman -->
               <fieldset class="svc-fields" data-service="handyman">
                 <legend>Handyman details</legend>
                 <label class="full">
-                  Property or office address
+                  Property address
                   <input name="Handyman address" type="text" autocomplete="street-address" placeholder="Street address, city">
                 </label>
                 <label>
@@ -269,13 +245,6 @@
               <fieldset class="svc-fields" data-service="restocking">
                 <legend>Restocking details</legend>
                 <label>
-                  Property type
-                  <select name="Restock property type">
-                    <option>Vacation rental</option>
-                    <option>Office</option>
-                  </select>
-                </label>
-                <label>
                   Supply handling
                   <select name="Restock supply handling">
                     <option>I'll ship supplies to you</option>
@@ -284,7 +253,7 @@
                   </select>
                 </label>
                 <label class="full">
-                  Property or office address
+                  Property address
                   <input name="Restock address" type="text" autocomplete="street-address" placeholder="Street address, city">
                 </label>
                 <label class="full">
@@ -297,7 +266,7 @@
               <fieldset class="svc-fields" data-service="other">
                 <legend>Tell us more</legend>
                 <label class="full">
-                  Property or office address
+                  Property address
                   <input name="Address" type="text" autocomplete="street-address" placeholder="Street address, city">
                 </label>
                 <label class="full">
@@ -326,14 +295,13 @@
       <div class="footer-grid">
         <div>
           <p class="footer-brand">HandymanCleaners</p>
-          <p>Father-and-son vacation rental turnover cleaning, after-hours office cleaning, and handyman support for the Southeast Valley.</p>
+          <p>Father-and-son vacation rental turnover cleaning and handyman support for the Southeast Valley.</p>
           <a href="https://app.turno.com/vacation-rental-cleaner-profile/567383/452264/Queen%20Creek/Arizona/United%20States" target="_blank" rel="noopener">Verified Turno Profile</a>
         </div>
         <div>
           <h3>Services</h3>
           <a href="/services/vacation-rental-turnover-cleaning/">Vacation Rental Turnover Cleaning</a>
           <a href="/services/recurring-vacation-rental-cleaning/">Recurring Vacation Rental Cleaning</a>
-          <a href="/services/office-cleaning/">Office Cleaning</a>
           <a href="/services/handyman-property-maintenance/">Handyman &amp; Maintenance</a>
           <a href="/services/supply-restocking/">Supply Restocking</a>
         </div>
@@ -388,10 +356,19 @@
           });
         }
 
-        svcSelect.addEventListener("change", syncFields);
+        // Service type is a radio group now; re-sync when the choice changes.
+        form.addEventListener("change", function (e) {
+          if (e.target && e.target.name === "Service type") syncFields();
+        });
         // Re-sync after back/forward navigation restores form state (bfcache or re-parse).
         window.addEventListener("pageshow", syncFields);
         syncFields();
+
+        // Block past dates in every date field.
+        var t = new Date();
+        var pad = function (n) { return (n < 10 ? "0" : "") + n; };
+        var todayStr = t.getFullYear() + "-" + pad(t.getMonth() + 1) + "-" + pad(t.getDate());
+        Array.prototype.forEach.call(form.querySelectorAll("input[type=date]"), function (d) { d.min = todayStr; });
 
         function collectFields() {
           var data = {};
@@ -400,6 +377,10 @@
             if (field.closest(".svc-fields[hidden]")) return;
             if (field.type === "checkbox") {
               if (field.checked) data[field.name] = field.value && field.value !== "on" ? field.value : "Yes";
+              return;
+            }
+            if (field.type === "radio") {
+              if (field.checked) data[field.name] = field.getAttribute("data-label") || field.value;
               return;
             }
             var value;

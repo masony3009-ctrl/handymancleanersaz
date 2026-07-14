@@ -63,7 +63,7 @@ async function handleRequestForm(request, env) {
 
   // Store: dedupe the client by phone, then record the request.
   const address = clean(
-    fields["Property address"] || fields["Office address"] || fields["Handyman address"] || fields["Restock address"] || fields["Address"] || ""
+    fields["Property address"] || fields["Handyman address"] || fields["Restock address"] || fields["Address"] || ""
   );
   const requestedDate = clean(fields["Cleaning date"] || fields["Handyman preferred date"] || "");
 
