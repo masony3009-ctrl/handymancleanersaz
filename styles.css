@@ -126,7 +126,7 @@ footer a,
   height: 44px;
   object-fit: cover;
   border: 1px solid var(--line);
-  border-radius: 4px;
+  border-radius: 12px;
 }
 
 nav {
@@ -163,7 +163,7 @@ nav a:hover {
   gap: 5px;
   background: none;
   border: 1px solid var(--line);
-  border-radius: 3px;
+  border-radius: 10px;
   cursor: pointer;
 }
 
@@ -182,7 +182,7 @@ nav a:hover {
   align-items: center;
   justify-content: center;
   padding: 0 22px;
-  border-radius: 3px;
+  border-radius: 10px;
   font-size: 13px;
   font-weight: 800;
   letter-spacing: 1.2px;
@@ -362,7 +362,7 @@ nav a:hover {
   width: 100%;
   aspect-ratio: 4 / 3;
   object-fit: cover;
-  border-radius: 4px;
+  border-radius: 12px;
   box-shadow: var(--shadow);
 }
 
@@ -416,7 +416,7 @@ nav a:hover {
   overflow: hidden;
   background: #ffffff;
   border: 1px solid var(--line);
-  border-radius: 4px;
+  border-radius: 12px;
   box-shadow: var(--shadow);
 }
 
@@ -503,7 +503,7 @@ nav a:hover {
   padding: 24px;
   background: #ffffff;
   border: 1px solid var(--line);
-  border-radius: 4px;
+  border-radius: 12px;
 }
 
 .diff-icon {
@@ -542,7 +542,7 @@ nav a:hover {
   background: #ffffff;
   border: 1px solid var(--line);
   border-top: 4px solid var(--teal);
-  border-radius: 4px;
+  border-radius: 12px;
   box-shadow: var(--shadow);
   text-align: center;
 }
@@ -638,7 +638,7 @@ nav a:hover {
   padding: 24px;
   background: #ffffff;
   border: 1px solid var(--line);
-  border-radius: 4px;
+  border-radius: 12px;
 }
 
 .checklist-grid h3 {
@@ -694,7 +694,7 @@ nav a:hover {
   padding: 18px 20px;
   background: rgba(10, 165, 160, 0.08);
   border: 1px solid var(--teal);
-  border-radius: 4px;
+  border-radius: 12px;
 }
 
 .checklist-callout strong {
@@ -719,7 +719,7 @@ nav a:hover {
 .faq-list details {
   background: #ffffff;
   border: 1px solid var(--line);
-  border-radius: 4px;
+  border-radius: 12px;
 }
 
 .faq-list summary {
@@ -773,7 +773,7 @@ nav a:hover {
   padding: 26px 18px;
   background: #ffffff;
   border: 1px solid var(--line);
-  border-radius: 4px;
+  border-radius: 12px;
   box-shadow: var(--shadow);
   text-align: center;
 }
@@ -814,7 +814,7 @@ nav a:hover {
   background: #ffffff;
   border: 1px solid var(--line);
   border-left: 4px solid var(--teal);
-  border-radius: 4px;
+  border-radius: 12px;
 }
 
 .quote-grid p {
@@ -897,7 +897,7 @@ nav a:hover {
   color: var(--teal-dark);
   background: var(--light);
   border: 1px solid var(--line);
-  border-radius: 3px;
+  border-radius: 10px;
   font-size: 15px;
   font-weight: 700;
 }
@@ -922,7 +922,7 @@ nav a:hover {
   padding: 18px;
   background: #ffffff;
   border: 1px solid var(--line);
-  border-radius: 4px;
+  border-radius: 12px;
 }
 
 .contact-box a {
@@ -938,7 +938,7 @@ form {
   padding: clamp(18px, 3vw, 28px);
   background: #ffffff;
   border: 1px solid var(--line);
-  border-radius: 4px;
+  border-radius: 12px;
   box-shadow: var(--shadow);
 }
 
@@ -950,7 +950,7 @@ fieldset {
   margin: 0;
   padding: 16px;
   border: 1px solid var(--line);
-  border-radius: 4px;
+  border-radius: 12px;
 }
 
 legend {
@@ -977,7 +977,7 @@ textarea {
   width: 100%;
   min-width: 0;
   border: 1px solid var(--line);
-  border-radius: 3px;
+  border-radius: 10px;
   padding: 12px;
   color: var(--ink);
   background: var(--light);
@@ -1009,7 +1009,7 @@ textarea {
   color: var(--teal-dark);
   background: rgba(10, 165, 160, 0.10);
   border: 1px solid var(--teal);
-  border-radius: 3px;
+  border-radius: 10px;
   font-size: 14px;
   font-weight: 600;
 }
@@ -1335,7 +1335,7 @@ nav a[aria-current="page"] {
   width: 100%;
   aspect-ratio: 4 / 3;
   object-fit: cover;
-  border-radius: 4px;
+  border-radius: 12px;
   box-shadow: var(--shadow);
 }
 
@@ -1394,7 +1394,7 @@ nav a[aria-current="page"] {
   padding: 12px;
   background: #ffffff;
   border: 1px solid var(--line);
-  border-radius: 4px;
+  border-radius: 12px;
   box-shadow: var(--shadow);
 }
 
@@ -1406,7 +1406,7 @@ nav a[aria-current="page"] {
   width: 100%;
   aspect-ratio: 4 / 3;
   object-fit: cover;
-  border-radius: 3px;
+  border-radius: 10px;
 }
 
 .ba-pair figcaption {
@@ -1435,7 +1435,7 @@ nav a[aria-current="page"] {
   padding: 22px;
   background: #ffffff;
   border: 1px solid var(--line);
-  border-radius: 4px;
+  border-radius: 12px;
   text-decoration: none;
   transition: border-color 0.15s ease, transform 0.15s ease;
 }
@@ -1548,7 +1548,7 @@ nav a[aria-current="page"] {
     padding: 8px;
     background: rgba(255, 255, 255, 0.96);
     border: 1px solid var(--line);
-    border-radius: 4px;
+    border-radius: 12px;
     box-shadow: var(--shadow);
   }
 
@@ -1559,7 +1559,7 @@ nav a[aria-current="page"] {
     justify-content: center;
     color: #ffffff;
     background: var(--teal);
-    border-radius: 3px;
+    border-radius: 10px;
     font-size: 13px;
     font-weight: 800;
     letter-spacing: 1px;
@@ -1672,7 +1672,7 @@ textarea:focus-visible,
   padding: 16px;
   background: var(--light);
   border: 1px solid var(--line);
-  border-radius: 4px;
+  border-radius: 12px;
 }
 
 .form-notice {
@@ -1772,7 +1772,7 @@ button.button[disabled] {
   height: 20px;
   padding: 2px;
   cursor: pointer;
-  border-radius: 4px;
+  border-radius: 12px;
   opacity: 0.55;
 }
 
@@ -2053,29 +2053,14 @@ button.button[disabled] {
   border-color: var(--teal);
 }
 
-/* Symmetry: 4-up service and location grids after office removal */
-.service-grid {
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-}
-
-.link-grid.quad {
-  grid-template-columns: repeat(4, 1fr);
-}
-
-@media (max-width: 1080px) {
-  .service-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
+/* Centered two-card variant for related-services grids */
+.link-grid.duo {
+  grid-template-columns: repeat(2, minmax(0, 420px));
+  justify-content: center;
 }
 
 @media (max-width: 980px) {
-  .link-grid.quad {
-    grid-template-columns: repeat(2, 1fr);
-  }
-}
-
-@media (max-width: 560px) {
-  .link-grid.quad {
+  .link-grid.duo {
     grid-template-columns: 1fr;
   }
 }
@@ -2191,7 +2176,7 @@ button.button[disabled] {
   padding: 20px;
   background: #ffffff;
   border: 1px solid var(--line);
-  border-radius: 4px;
+  border-radius: 12px;
   box-shadow: var(--shadow);
 }
 
@@ -2199,7 +2184,7 @@ button.button[disabled] {
   width: 100%;
   aspect-ratio: 16 / 10;
   object-fit: cover;
-  border-radius: 3px;
+  border-radius: 10px;
 }
 
 .gp-banner {
@@ -2208,7 +2193,7 @@ button.button[disabled] {
   aspect-ratio: 3.4 / 1;
   color: #ffffff;
   background: linear-gradient(135deg, var(--teal) 0%, var(--teal-dark) 100%);
-  border-radius: 3px;
+  border-radius: 10px;
 }
 
 .gp-banner svg {
@@ -2242,7 +2227,7 @@ button.button[disabled] {
   background: #ffffff;
   border: 1px solid var(--line);
   border-left: 4px solid var(--teal);
-  border-radius: 4px;
+  border-radius: 12px;
 }
 
 .guest-quotes blockquote p {

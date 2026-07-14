@@ -63,7 +63,7 @@ async function handleRequestForm(request, env) {
 
   // Store: dedupe the client by phone, then record the request.
   const address = clean(
-    fields["Property address"] || fields["Handyman address"] || fields["Restock address"] || fields["Address"] || ""
+    fields["Property address"] || fields["Handyman address"] || fields["Address"] || ""
   );
   const requestedDate = clean(fields["Cleaning date"] || fields["Handyman preferred date"] || "");
 
@@ -154,7 +154,7 @@ function json(obj, status = 200) {
 
 function htmlThanks() {
   return new Response(
-    `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="robots" content="noindex"><title>Request received | HandymanCleaners</title><link rel="stylesheet" href="/styles.css"></head><body><main style="display:grid;place-items:center;min-height:70vh;padding:24px;text-align:center;"><div><h1 style="font-size:34px;">Request received</h1><p style="max-width:460px;color:#5c6b76;">Thanks - we have your request and will get back to you shortly by phone, text, or email.</p><p><a class="button primary" href="/" style="display:inline-flex;min-height:46px;align-items:center;padding:0 22px;background:#0aa5a0;color:#fff;border-radius:3px;text-decoration:none;font-weight:800;">Back to the site</a></p></div></main></body></html>`,
+    `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="robots" content="noindex"><title>Request received | HandymanCleaners</title><link rel="stylesheet" href="/styles.css"></head><body><main style="display:grid;place-items:center;min-height:70vh;padding:24px;text-align:center;"><div><h1 style="font-size:34px;">Request received</h1><p style="max-width:460px;color:#5c6b76;">Thanks - we have your request and will get back to you shortly by phone, text, or email.</p><p><a class="button primary" href="/" style="display:inline-flex;min-height:46px;align-items:center;padding:0 22px;background:#0aa5a0;color:#fff;border-radius:10px;text-decoration:none;font-weight:800;">Back to the site</a></p></div></main></body></html>`,
     { status: 200, headers: { "content-type": "text/html; charset=utf-8" } }
   );
 }

@@ -5,3 +5,6 @@
 # Office cleaning service discontinued -> homepage
 /services/office-cleaning/  /  301
 /services/office-cleaning   /  301
+# Restocking folded into recurring cleaning
+/services/supply-restocking/  /services/recurring-vacation-rental-cleaning/  301
+/services/supply-restocking   /services/recurring-vacation-rental-cleaning/  301
