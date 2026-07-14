@@ -2187,20 +2187,6 @@ button.button[disabled] {
   border-radius: 10px;
 }
 
-.gp-banner {
-  display: grid;
-  place-items: center;
-  aspect-ratio: 3.4 / 1;
-  color: #ffffff;
-  background: linear-gradient(135deg, var(--teal) 0%, var(--teal-dark) 100%);
-  border-radius: 10px;
-}
-
-.gp-banner svg {
-  width: 46px;
-  height: 46px;
-}
-
 .gp-title {
   margin: 0;
   color: var(--ink);
