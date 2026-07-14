@@ -1830,15 +1830,9 @@ button.button[disabled] {
   box-shadow: var(--shadow);
 }
 
-.gp-photos {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 10px;
-}
-
-.gp-photos img {
+.gp-photo {
   width: 100%;
-  aspect-ratio: 1 / 1;
+  aspect-ratio: 16 / 10;
   object-fit: cover;
   border-radius: 3px;
 }
