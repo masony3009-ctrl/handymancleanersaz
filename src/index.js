@@ -3,6 +3,7 @@
 // service-request form: POST /api/request -> validate -> store in D1 -> email Mason.
 
 import { EmailMessage } from "cloudflare:email";
+import { handleAdmin } from "./admin.js";
 
 const DEST = "handymancleanersaz@gmail.com";
 const FROM = "requests@handymancleanersaz.com";
@@ -12,6 +13,10 @@ const MAX_FIELDS = 40;
 export default {
   async fetch(request, env, ctx) {
     const url = new URL(request.url);
+
+    if (url.pathname === "/admin" || url.pathname.startsWith("/admin/")) {
+      return handleAdmin(request, env);
+    }
 
     if (url.pathname === "/api/request") {
       if (request.method !== "POST") {

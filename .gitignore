@@ -4,7 +4,8 @@ COMPLIANCE_NOTES.md
 # Agent-local configuration — never commit
 .claude/
 
-# Wrangler local state and deps — never commit
+# Wrangler local state, secrets, and deps — never commit
+.dev.vars
 .wrangler/
 node_modules/
 

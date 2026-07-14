@@ -13,3 +13,4 @@ COMPLIANCE_NOTES.md
 .assetsignore
 .claude
 .wrangler
+.dev.vars

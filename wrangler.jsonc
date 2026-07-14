@@ -13,7 +13,10 @@
     "directory": ".",
     "binding": "ASSETS",
     "not_found_handling": "404-page",
-    "html_handling": "auto-trailing-slash"
+    "html_handling": "auto-trailing-slash",
+    // Dynamic routes must reach the Worker even for browser navigations
+    // (otherwise navigation requests to non-asset paths get the 404 page).
+    "run_worker_first": ["/api/*", "/admin", "/admin/*"]
   },
 
   // Client + request database (created with: npx wrangler d1 create handymancleaners)
