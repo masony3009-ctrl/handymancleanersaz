@@ -1,0 +1,15 @@
+# Files that must never be served as static assets
+src
+wrangler.jsonc
+schema.sql
+serve.js
+site.js.map
+package.json
+package-lock.json
+node_modules
+README.md
+COMPLIANCE_NOTES.md
+.gitignore
+.assetsignore
+.claude
+.wrangler

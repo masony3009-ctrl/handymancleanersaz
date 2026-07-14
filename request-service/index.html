@@ -86,7 +86,12 @@
               </ul>
             </div>
 
-            <form id="service-form" action="mailto:handymancleanersaz@gmail.com" method="post" enctype="text/plain">
+            <form id="service-form" action="/api/request" method="post">
+              <!-- Honeypot: humans never see or fill this; bots do. -->
+              <label class="hp-wrap" aria-hidden="true">
+                Website
+                <input name="website" type="text" tabindex="-1" autocomplete="off">
+              </label>
               <fieldset>
                 <legend>Contact</legend>
                 <label>
@@ -190,13 +195,9 @@
               <fieldset class="svc-fields" data-service="turnover recurring">
                 <legend>Checklist and instructions</legend>
                 <label class="full">
-                  Checklist file
-                  <input name="Checklist file" type="file" accept=".pdf,.doc,.docx,.txt,.jpg,.jpeg,.png">
-                  <span class="field-note">Pressing send opens your email app — attach the file there before sending.</span>
-                </label>
-                <label class="full">
                   Checklist, special instructions, or notes
                   <textarea name="Checklist or notes" rows="4" placeholder="Parking, trash day, linens, restock list, photo requests, host preferences, etc."></textarea>
+                  <span class="field-note">Have a checklist file? We'll collect it when we confirm your booking.</span>
                 </label>
                 <label class="full">
                   Add-ons or extra requests
@@ -312,11 +313,8 @@
                   <span>I have read and agree to the <a href="/privacy/">Privacy Policy</a> and <a href="/terms/">Terms</a>.&nbsp;<span class="req" aria-hidden="true">*</span></span>
                 </label>
               </div>
-              <button class="button primary" type="submit">Send Request</button>
-              <noscript>
-                <p class="form-notice">This form needs JavaScript to open your email app. If it isn't working, email your request details to <a href="mailto:handymancleanersaz@gmail.com">handymancleanersaz@gmail.com</a> or call or text <a href="tel:6502651193">650-265-1193</a>.</p>
-              </noscript>
-              <p class="form-status" id="form-status" role="status" aria-live="polite" hidden>Your email app should now be open with this request filled in — just press send. If nothing opened, call or text Mason at <a href="tel:6502651193">650-265-1193</a> or email <a href="mailto:handymancleanersaz@gmail.com">handymancleanersaz@gmail.com</a>.</p>
+              <button class="button primary" type="submit" id="form-submit">Send Request</button>
+              <p class="form-status" id="form-status" role="status" aria-live="polite" hidden></p>
               <p class="form-disclaimer">HandymanCleaners is an independent third party and is not endorsed by or associated with Airbnb, Inc. or its affiliates. Airbnb and Vrbo are trademarks of their respective owners.</p>
             </form>
           </div>
@@ -395,19 +393,13 @@
         window.addEventListener("pageshow", syncFields);
         syncFields();
 
-        function buildBody() {
-          var lines = [];
+        function collectFields() {
+          var data = {};
           Array.prototype.forEach.call(form.elements, function (field) {
             if (!field.name || field.type === "submit") return;
             if (field.closest(".svc-fields[hidden]")) return;
-            if (field.type === "file") {
-              if (field.files && field.files.length) {
-                lines.push(field.name + ": " + field.files[0].name + " (please attach this file to the email before sending)");
-              }
-              return;
-            }
             if (field.type === "checkbox") {
-              if (field.checked) lines.push(field.name + ": " + (field.value && field.value !== "on" ? field.value : "Yes"));
+              if (field.checked) data[field.name] = field.value && field.value !== "on" ? field.value : "Yes";
               return;
             }
             var value;
@@ -416,22 +408,61 @@
             } else {
               value = (field.value || "").trim();
             }
-            if (value) lines.push(field.name + ": " + value);
+            if (value) data[field.name] = value;
           });
-          return lines.join("\n");
+          return data;
         }
+
+        function setStatus(html, isError) {
+          status.innerHTML = html;
+          status.classList.toggle("error", !!isError);
+          status.hidden = false;
+          status.scrollIntoView({ block: "nearest", behavior: "smooth" });
+        }
+
+        var submitBtn = document.getElementById("form-submit");
 
         form.addEventListener("submit", function (event) {
           event.preventDefault();
-          var label = svcSelect.options[svcSelect.selectedIndex].text;
-          var dateField = form.elements["Cleaning date"];
-          var date = dateField && !dateField.closest(".svc-fields[hidden]") ? dateField.value : "";
-          var subject = "Service request - " + label + (date ? " - " + date : "");
-          window.location.href = "mailto:handymancleanersaz@gmail.com" +
-            "?subject=" + encodeURIComponent(subject) +
-            "&body=" + encodeURIComponent(buildBody());
-          status.hidden = false;
-          status.scrollIntoView({ block: "nearest", behavior: "smooth" });
+          var data = collectFields();
+
+          submitBtn.disabled = true;
+          submitBtn.textContent = "Sending…";
+          form.setAttribute("aria-busy", "true");
+
+          fetch("/api/request", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(data)
+          }).then(function (res) {
+            return res.json().catch(function () { return { ok: false }; }).then(function (body) {
+              return { httpOk: res.ok, body: body };
+            });
+          }).then(function (r) {
+            if (r.httpOk && r.body.ok) {
+              form.reset();
+              syncFields();
+              setStatus("Request sent! We have it and will get back to you shortly by phone, text, or email.", false);
+              submitBtn.textContent = "Request Sent";
+            } else {
+              throw new Error(r.body && r.body.error ? r.body.error : "Request failed");
+            }
+          }).catch(function (err) {
+            var lines = [];
+            for (var k in data) { if (k !== "website") lines.push(k + ": " + data[k]); }
+            var mailto = "mailto:handymancleanersaz@gmail.com" +
+              "?subject=" + encodeURIComponent("Service request - " + (data["Service type"] || "")) +
+              "&body=" + encodeURIComponent(lines.join("\n"));
+            setStatus(
+              (err && err.message && err.message !== "Request failed" ? err.message + " " : "We couldn't send your request just now. ") +
+              'You can <a href="' + mailto + '">send it by email instead</a>, or call or text Mason at <a href="tel:6502651193">650-265-1193</a>.',
+              true
+            );
+            submitBtn.disabled = false;
+            submitBtn.textContent = "Send Request";
+          }).finally(function () {
+            form.removeAttribute("aria-busy");
+          });
         });
       })();
     </script>

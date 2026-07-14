@@ -1,0 +1,41 @@
+{
+  // Cloudflare Worker config for handymancleanersaz.com
+  // IMPORTANT: "name" must match the existing Worker in the Cloudflare dashboard
+  // (Workers & Pages -> the project serving this site) or the git build will
+  // create a second Worker instead of updating this one.
+  "name": "handymancleanersaz",
+  "main": "src/index.js",
+  "compatibility_date": "2026-07-01",
+
+  // Static site files. The Worker only runs for requests that don't match a file
+  // (e.g. POST /api/request); everything else is served directly as an asset.
+  "assets": {
+    "directory": ".",
+    "binding": "ASSETS",
+    "not_found_handling": "404-page",
+    "html_handling": "auto-trailing-slash"
+  },
+
+  // Client + request database (created with: npx wrangler d1 create handymancleaners)
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "handymancleaners",
+      "database_id": "0bcdde38-20a3-4159-96c1-4ade5ea8c9c5"
+    }
+  ],
+
+  // Sends the inquiry email via Cloudflare Email Routing.
+  // Requires Email Routing enabled on handymancleanersaz.com with this
+  // destination address verified.
+  "send_email": [
+    {
+      "name": "NOTIFY",
+      "destination_address": "handymancleanersaz@gmail.com"
+    }
+  ],
+
+  "observability": {
+    "enabled": true
+  }
+}
