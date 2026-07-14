@@ -1813,39 +1813,68 @@ button.button[disabled] {
 }
 
 /* Guest reviews proof section ("See What the Guests Are Saying") */
-.guest-proof {
+.guest-properties {
   display: grid;
-  grid-template-columns: 0.9fr 1.1fr;
-  gap: clamp(24px, 4vw, 44px);
-  align-items: center;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 22px;
+  align-items: start;
 }
 
-.guest-gallery {
+.guest-property {
   display: grid;
-  gap: 12px;
-}
-
-.guest-gallery img {
-  width: 100%;
-  aspect-ratio: 4 / 3;
-  object-fit: cover;
+  gap: 14px;
+  padding: 20px;
+  background: #ffffff;
+  border: 1px solid var(--line);
   border-radius: 4px;
   box-shadow: var(--shadow);
 }
 
-.guest-gallery .pair {
+.gp-photos {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 12px;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
 }
 
-.guest-gallery .pair img {
-  aspect-ratio: 16 / 10;
+.gp-photos img {
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  object-fit: cover;
+  border-radius: 3px;
+}
+
+.gp-banner {
+  display: grid;
+  place-items: center;
+  aspect-ratio: 3.4 / 1;
+  color: #ffffff;
+  background: linear-gradient(135deg, var(--teal) 0%, var(--teal-dark) 100%);
+  border-radius: 3px;
+}
+
+.gp-banner svg {
+  width: 46px;
+  height: 46px;
+}
+
+.gp-title {
+  margin: 0;
+  color: var(--ink);
+  font-size: 15px;
+  font-weight: 800;
+}
+
+.guest-property .button {
+  justify-self: start;
 }
 
 .guest-quotes {
   display: grid;
   gap: 14px;
+}
+
+.guest-property blockquote {
+  background: var(--light);
 }
 
 .guest-quotes blockquote {
@@ -1874,10 +1903,6 @@ button.button[disabled] {
   text-transform: uppercase;
 }
 
-.guest-proof-cta {
-  margin-top: 4px;
-}
-
 .guest-note {
   margin: 0;
   color: var(--muted);
@@ -1886,7 +1911,7 @@ button.button[disabled] {
 }
 
 @media (max-width: 980px) {
-  .guest-proof {
+  .guest-properties {
     grid-template-columns: 1fr;
   }
 }
