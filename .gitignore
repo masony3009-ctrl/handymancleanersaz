@@ -4,6 +4,10 @@ COMPLIANCE_NOTES.md
 # Agent-local configuration — never commit
 .claude/
 
+# Wrangler local state and deps — never commit
+.wrangler/
+node_modules/
+
 # OS / editor cruft
 .DS_Store
 Thumbs.db

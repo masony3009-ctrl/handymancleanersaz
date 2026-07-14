@@ -1689,6 +1689,32 @@ textarea:focus-visible,
   line-height: 1.5;
 }
 
+/* Honeypot field: visually removed, still in the DOM for bots */
+.hp-wrap {
+  position: absolute !important;
+  left: -9999px !important;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+}
+
+/* Form status error variant (base .form-status styles live in the Request section) */
+.form-status.error {
+  color: #a03232;
+  background: rgba(196, 74, 74, 0.08);
+  border-color: #c94f4f;
+}
+
+.form-status.error a {
+  color: #a03232;
+  font-weight: 800;
+}
+
+button.button[disabled] {
+  opacity: 0.65;
+  cursor: default;
+}
+
 /* Ratings "as of" note */
 .badge-note {
   margin: 18px 0 0;
