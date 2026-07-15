@@ -65,7 +65,10 @@ async function handleRequestForm(request, env) {
   const address = clean(
     fields["Property address"] || fields["Handyman address"] || fields["Address"] || ""
   );
-  const requestedDate = clean(fields["Cleaning date"] || fields["Handyman preferred date"] || "");
+  const requestedDate = clean(
+    fields["Cleaning date ISO"] || fields["Handyman preferred date ISO"] ||
+    fields["Cleaning date"] || fields["Handyman preferred date"] || ""
+  );
 
   await env.DB.prepare(
     `INSERT INTO clients (name, phone, email) VALUES (?1, ?2, ?3)

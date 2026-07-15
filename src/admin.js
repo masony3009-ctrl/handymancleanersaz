@@ -100,13 +100,25 @@ async function dataEndpoint(env, headers) {
      FROM requests r JOIN clients c ON c.id = r.client_id
      ORDER BY r.created_at DESC LIMIT 300`
   ).all();
+  // Future-dated open requests can age out of the 300-newest window above but
+  // still belong on the Upcoming schedule — fetch them separately and merge.
+  const upcoming = await env.DB.prepare(
+    `SELECT r.id, r.service_type, r.address, r.requested_date, r.details, r.status, r.created_at,
+            c.id AS client_id, c.name, c.phone, c.email
+     FROM requests r JOIN clients c ON c.id = r.client_id
+     WHERE r.requested_date >= date('now', '-1 day')
+       AND r.status NOT IN ('done', 'declined')
+     ORDER BY r.requested_date ASC LIMIT 100`
+  ).all();
+  const seen = new Set(requests.results.map((r) => r.id));
+  const merged = requests.results.concat(upcoming.results.filter((r) => !seen.has(r.id)));
   const clients = await env.DB.prepare(
     `SELECT c.id, c.name, c.phone, c.email, c.first_seen, c.notes,
             COUNT(r.id) AS request_count
      FROM clients c LEFT JOIN requests r ON r.client_id = c.id
      GROUP BY c.id ORDER BY c.first_seen DESC LIMIT 300`
   ).all();
-  return json({ ok: true, requests: requests.results, clients: clients.results }, 200, headers);
+  return json({ ok: true, requests: merged, clients: clients.results }, 200, headers);
 }
 
 async function statusEndpoint(request, env, headers) {
@@ -190,12 +202,25 @@ function dashboardPage() {
   textarea{width:100%;box-sizing:border-box;border:1px solid var(--line);border-radius:4px;padding:8px;font:inherit;font-size:13px;background:var(--light);resize:vertical}
   .saved{color:var(--teal-dark);font-size:12px;font-weight:700;visibility:hidden}
   .saved.show{visibility:visible}
+  .search{width:100%;box-sizing:border-box;padding:10px 14px;border:1px solid var(--line);border-radius:20px;font:inherit;font-size:14px;background:#fff;margin:8px 0 0}
+  .badge{padding:4px 10px;border-radius:12px;font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:.5px;background:var(--light);border:1px solid var(--line)}
+  .badge.b-new{background:#fdf4e3;border-color:#e0a53c}
+  .badge.b-contacted{background:#eef2fd;border-color:#7d9bd6}
+  .badge.b-confirmed{background:#e3f4f3;border-color:var(--teal)}
+  .up-date{color:var(--teal-dark)}
+  .act{font-size:12.5px;font-weight:800;color:var(--teal-dark);text-decoration:none;border:1px solid var(--line);border-radius:12px;padding:3px 10px;margin-left:8px;white-space:nowrap}
+  .act:hover{border-color:var(--teal)}
+  .hist{display:grid;gap:4px;margin:6px 0 0;padding:0}
+  .hist-row{font-size:13px;color:var(--muted)}
   </style></head><body>
   <header>
     <h1>HandymanCleaners Admin</h1>
     <form method="post" action="/admin/logout"><button class="lo" type="submit">Log out</button></form>
   </header>
   <main>
+    <input id="q" class="search" type="search" placeholder="Search name, phone, address, or email" autocomplete="off">
+    <h2>Upcoming</h2>
+    <div id="upcoming"></div>
     <h2>Requests</h2>
     <div class="chips" id="chips"></div>
     <div id="requests"></div>
@@ -204,7 +229,7 @@ function dashboardPage() {
   </main>
   <script>
   var STATUSES = ${JSON.stringify(STATUSES)};
-  var state = { filter: "all", data: null };
+  var state = { filter: "all", q: "", data: null };
 
   function el(tag, cls, text) {
     var e = document.createElement(tag);
@@ -213,7 +238,78 @@ function dashboardPage() {
     return e;
   }
 
-  function fmtDate(s) { return s ? s.replace(":00", "").replace("T", " ") : ""; }
+  function fmtDate(s) { return s ? s.replace("T", " ").replace(/:\\d{2}$/, "") : ""; }
+
+  function matches(r) {
+    if (!state.q) return true;
+    var hay = ((r.name || "") + " " + (r.phone || "") + " " + (r.email || "") + " " + (r.address || "")).toLowerCase();
+    if (hay.indexOf(state.q) !== -1) return true;
+    var qDigits = state.q.replace(/\\D/g, "");
+    return qDigits.length >= 4 && (r.phone || "").indexOf(qDigits) !== -1;
+  }
+
+  function contactLinks(parent, phone, email) {
+    var tel = el("a", null, phone);
+    tel.href = "tel:" + phone;
+    parent.appendChild(tel);
+    var sms = el("a", "act", "Text");
+    sms.href = "sms:" + phone;
+    parent.appendChild(sms);
+    // Guard the mailto against header injection (?bcc=...&body=...) from a
+    // crafted submission - keep only a plain address-shaped value.
+    var addr = String(email || "").split(/[?&]/)[0];
+    if (addr && /^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(addr)) {
+      var em = el("a", "act", "Email");
+      em.href = "mailto:" + addr;
+      parent.appendChild(em);
+    }
+  }
+
+  function localIso(d) {
+    return d.getFullYear() + "-" + ("0" + (d.getMonth() + 1)).slice(-2) + "-" + ("0" + d.getDate()).slice(-2);
+  }
+
+  function dayLabel(isoStr) {
+    var p = isoStr.split("-");
+    var d = new Date(Number(p[0]), Number(p[1]) - 1, Number(p[2]));
+    var today = new Date(); today.setHours(0, 0, 0, 0);
+    var diff = Math.round((d - today) / 86400000);
+    var names = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+    var label = names[d.getDay()] + " " + (d.getMonth() + 1) + "/" + d.getDate();
+    if (diff === 0) return "Today (" + label + ")";
+    if (diff === 1) return "Tomorrow (" + label + ")";
+    return label;
+  }
+
+  function renderUpcoming() {
+    var box = document.getElementById("upcoming");
+    box.replaceChildren();
+    var today = new Date(); today.setHours(0, 0, 0, 0);
+    var todayIso = localIso(today);
+    var rows = state.data.requests.filter(function (r) {
+      return /^\\d{4}-\\d{2}-\\d{2}$/.test(r.requested_date || "") &&
+        r.requested_date >= todayIso &&
+        r.status !== "done" && r.status !== "declined" &&
+        matches(r);
+    }).sort(function (a, b) { return a.requested_date < b.requested_date ? -1 : a.requested_date > b.requested_date ? 1 : 0; });
+    if (!rows.length) {
+      box.appendChild(el("div", "empty", "Nothing scheduled ahead. Requests with a future service date show up here, soonest first."));
+      return;
+    }
+    rows.forEach(function (r) {
+      var card = el("div", "card");
+      var row1 = el("div", "row1");
+      var who = el("div", "who");
+      who.appendChild(el("span", "up-date", dayLabel(r.requested_date) + " "));
+      who.appendChild(el("span", null, "\\u2014 " + r.name + " "));
+      contactLinks(who, r.phone, r.email);
+      row1.appendChild(who);
+      row1.appendChild(el("span", "badge b-" + r.status, r.status));
+      card.appendChild(row1);
+      card.appendChild(el("div", "svc", r.service_type + (r.address ? " \\u2014 " + r.address : "")));
+      box.appendChild(card);
+    });
+  }
 
   function renderChips() {
     var counts = { all: state.data.requests.length };
@@ -230,22 +326,14 @@ function dashboardPage() {
   function renderRequests() {
     var box = document.getElementById("requests");
     box.replaceChildren();
-    var rows = state.data.requests.filter(function (r) { return state.filter === "all" || r.status === state.filter; });
+    var rows = state.data.requests.filter(function (r) { return (state.filter === "all" || r.status === state.filter) && matches(r); });
     if (!rows.length) { box.appendChild(el("div", "empty", "No requests here yet.")); return; }
     rows.forEach(function (r) {
       var card = el("div", "card");
       var row1 = el("div", "row1");
       var who = el("div", "who");
       who.appendChild(el("span", null, r.name + " "));
-      var tel = el("a", null, r.phone);
-      tel.href = "tel:" + r.phone;
-      who.appendChild(tel);
-      if (r.email) {
-        who.appendChild(el("span", null, " "));
-        var em = el("a", null, r.email);
-        em.href = "mailto:" + r.email;
-        who.appendChild(em);
-      }
+      contactLinks(who, r.phone, r.email);
       row1.appendChild(who);
       var sel = el("select", "s-" + r.status);
       STATUSES.forEach(function (s) {
@@ -256,7 +344,7 @@ function dashboardPage() {
       });
       sel.onchange = function () {
         fetch("/admin/api/status", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id: r.id, status: sel.value }) })
-          .then(function (res) { if (!res.ok) throw 0; r.status = sel.value; sel.className = "s-" + sel.value; renderChips(); })
+          .then(function (res) { if (!res.ok) throw 0; r.status = sel.value; sel.className = "s-" + sel.value; renderChips(); renderUpcoming(); })
           .catch(function () { alert("Save failed - try again"); sel.value = r.status; });
       };
       row1.appendChild(sel);
@@ -280,19 +368,30 @@ function dashboardPage() {
   function renderClients() {
     var box = document.getElementById("clients");
     box.replaceChildren();
-    if (!state.data.clients.length) { box.appendChild(el("div", "empty", "No clients yet - they appear when requests come in.")); return; }
-    state.data.clients.forEach(function (c) {
+    var clients = state.data.clients.filter(matches);
+    if (!clients.length) { box.appendChild(el("div", "empty", "No clients yet - they appear when requests come in.")); return; }
+    clients.forEach(function (c) {
       var card = el("div", "card");
       var row1 = el("div", "row1");
       var who = el("div", "who");
       who.appendChild(el("span", null, c.name + " "));
-      var tel = el("a", null, c.phone);
-      tel.href = "tel:" + c.phone;
-      who.appendChild(tel);
+      contactLinks(who, c.phone, c.email);
       row1.appendChild(who);
       row1.appendChild(el("div", "meta", c.request_count + " request" + (c.request_count === 1 ? "" : "s") + " - since " + fmtDate(c.first_seen)));
       card.appendChild(row1);
       if (c.email) card.appendChild(el("div", "meta", c.email));
+      var mine = state.data.requests.filter(function (r) { return r.client_id === c.id; });
+      if (mine.length) {
+        var hist = el("details");
+        hist.appendChild(el("summary", null, "History (" + mine.length + ")"));
+        var list = el("div", "hist");
+        mine.forEach(function (r) {
+          list.appendChild(el("div", "hist-row",
+            (r.requested_date || fmtDate(r.created_at)) + " \\u2014 " + r.service_type + " \\u2014 " + r.status));
+        });
+        hist.appendChild(list);
+        card.appendChild(hist);
+      }
       var ta = el("textarea");
       ta.rows = 2;
       ta.placeholder = "Notes (gate codes, preferences, linen counts...)";
@@ -300,10 +399,15 @@ function dashboardPage() {
       var saved = el("span", "saved", "Saved");
       var t;
       ta.oninput = function () {
+        c.notes = ta.value; // keep state in sync so re-renders (search, chips) show current text
         clearTimeout(t);
         t = setTimeout(function () {
           fetch("/admin/api/client-note", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id: c.id, notes: ta.value }) })
-            .then(function (res) { if (res.ok) { saved.classList.add("show"); setTimeout(function () { saved.classList.remove("show"); }, 1200); } });
+            .then(function (res) {
+              if (res.ok) { saved.classList.add("show"); setTimeout(function () { saved.classList.remove("show"); }, 1200); }
+              else { alert("Note didn't save - try again"); }
+            })
+            .catch(function () { alert("Note didn't save - check your connection and try again"); });
         }, 600);
       };
       card.appendChild(ta);
@@ -312,7 +416,12 @@ function dashboardPage() {
     });
   }
 
-  function render() { renderChips(); renderRequests(); renderClients(); }
+  function render() { renderUpcoming(); renderChips(); renderRequests(); renderClients(); }
+
+  document.getElementById("q").oninput = function () {
+    state.q = this.value.trim().toLowerCase();
+    if (state.data) render();
+  };
 
   fetch("/admin/api/data").then(function (r) { return r.json(); }).then(function (d) {
     if (!d.ok) { location.href = "/admin"; return; }
