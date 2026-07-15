@@ -1,6 +1,6 @@
 # HandymanCleanersAZ Website
 
-Static website for HandymanCleaners — vacation rental turnover cleaning, after-hours office cleaning, supply restocking, and light handyman service in the Queen Creek, San Tan Valley, and Gilbert area.
+Static website for HandymanCleaners — vacation rental turnover cleaning, recurring calendar-synced cleaning, and handyman installs, repairs, and upkeep in the Queen Creek, San Tan Valley, and Gilbert area.
 
 ## Hosting
 

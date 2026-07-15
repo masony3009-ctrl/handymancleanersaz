@@ -71,9 +71,8 @@
         <div class="container">
           <div class="request-grid">
             <div class="request-copy">
-              <p class="kicker">Get a Quote</p>
               <h1>Request Cleaning or Handyman Service</h1>
-              <p>Pick your service below and the form shows the right fields. Send it here, or call or text if timing is tight. This is an inquiry, not a confirmed booking — we'll follow up to confirm. Please don't enter door, garage, or alarm codes; we'll arrange access once you're booked.</p>
+              <p>Tell us what you need — we'll follow up fast to confirm timing and price. If timing is tight, call or text.</p>
               <div class="contact-box">
                 <a href="tel:6502651193">Mason: 650-265-1193</a>
                 <a href="mailto:handymancleanersaz@gmail.com">handymancleanersaz@gmail.com</a>
@@ -121,9 +120,9 @@
                     <span class="svc-tx"><strong>Recurring cleaning</strong><small>Automated turnovers, calendar sync</small></span>
                   </label>
                   <label class="svc-option">
-                    <input type="radio" name="Service type" value="handyman" data-label="Handyman / light maintenance">
+                    <input type="radio" name="Service type" value="handyman" data-label="Handyman / repairs &amp; installs">
                     <span class="svc-ic" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a4 4 0 0 0-5.4 5.3L3 18l3 3 6.4-6.3a4 4 0 0 0 5.3-5.4l-2.6 2.6-2.1-2.1z"/></svg></span>
-                    <span class="svc-tx"><strong>Handyman</strong><small>Light fixes &amp; maintenance</small></span>
+                    <span class="svc-tx"><strong>Handyman</strong><small>Installs, repairs &amp; upkeep</small></span>
                   </label>
                   <label class="svc-option">
                     <input type="radio" name="Service type" value="other" data-label="Something else / not sure">
@@ -139,6 +138,7 @@
                 <label>
                   Cleaning date
                   <input name="Cleaning date" type="text" data-picker="date" data-req readonly placeholder="Select a date" autocomplete="off">
+                  <input name="Cleaning date ISO" type="hidden" data-picker-iso>
                 </label>
                 <label>
                   Preferred arrival time
@@ -211,7 +211,7 @@
                 <label class="full">
                   Checklist, special instructions, or notes
                   <textarea name="Checklist or notes" rows="4" placeholder="Parking, trash day, linens, restock list, photo requests, host preferences, etc."></textarea>
-                  <span class="field-note">Have a checklist file? We'll collect it when we confirm your booking.</span>
+                  <span class="field-note">Have a checklist file? We'll collect it when we confirm your booking. No door or alarm codes here, please — we'll arrange access after booking.</span>
                 </label>
                 <label class="full">
                   Add-ons or extra requests
@@ -229,10 +229,11 @@
                 <label>
                   Preferred date
                   <input name="Handyman preferred date" type="text" data-picker="date" readonly placeholder="Select a date" autocomplete="off">
+                  <input name="Handyman preferred date ISO" type="hidden" data-picker-iso>
                 </label>
                 <label class="full">
                   Describe the fixes
-                  <textarea name="Handyman description" rows="4" placeholder="Light fixes and upkeep — hanging items, bulbs, filters, tightening fixtures, furniture assembly, small adjustments, etc."></textarea>
+                  <textarea name="Handyman description" rows="4" placeholder="e.g. TV mount, ceiling fan, faucet swap, drywall patch, blinds, furniture assembly — anything on your punch list."></textarea>
                 </label>
               </fieldset>
 
@@ -258,7 +259,6 @@
               </div>
               <button class="button primary" type="submit" id="form-submit">Send Request</button>
               <p class="form-status" id="form-status" role="status" aria-live="polite" hidden></p>
-              <p class="form-disclaimer">HandymanCleaners is an independent third party and is not endorsed by or associated with Airbnb, Inc. or its affiliates. Airbnb and Vrbo are trademarks of their respective owners.</p>
             </form>
           </div>
         </div>
@@ -380,7 +380,9 @@
             if (!missing && !f.closest(".svc-fields[hidden]") && !(f.value || "").trim()) missing = f;
           });
           if (missing) {
-            setStatus("Please choose a cleaning date so we can check availability.", true);
+            var label = missing.closest("label");
+            var fieldName = label ? label.textContent.trim().split("\n")[0].trim().toLowerCase() : "required field";
+            setStatus("Please fill in the " + fieldName + " so we can check availability.", true);
             missing.focus();
             return;
           }
@@ -402,6 +404,7 @@
             if (r.httpOk && r.body.ok) {
               form.reset();
               Array.prototype.forEach.call(form.querySelectorAll("[data-picker]"), function (i) { i.value = ""; delete i.dataset.iso; });
+              Array.prototype.forEach.call(form.querySelectorAll("[data-picker-iso]"), function (i) { i.value = ""; });
               syncFields();
               setStatus("Request sent! We have it and will get back to you shortly by phone, text, or email.", false);
               submitBtn.textContent = "Request Sent";
@@ -530,6 +533,8 @@
           }
           function pick(d) {
             input.value = pretty(d); input.dataset.iso = iso(d);
+            var isoField = form.elements[input.name + " ISO"];
+            if (isoField) isoField.value = iso(d);
             input.dispatchEvent(new Event("change", { bubbles: true }));
             close(); input.focus();
           }
