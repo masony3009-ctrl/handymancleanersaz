@@ -1,4 +1,7 @@
 # Files that must never be served as static assets
+# The git repo — MUST be blocked, or /.git/* leaks full source + history.
+.git
+.git/**
 src
 wrangler.jsonc
 schema.sql

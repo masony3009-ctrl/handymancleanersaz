@@ -9,7 +9,15 @@ const STATUSES = ["new", "contacted", "confirmed", "done", "declined"];
 export async function handleAdmin(request, env) {
   const url = new URL(request.url);
   const path = url.pathname;
-  const headers = { "X-Robots-Tag": "noindex, nofollow" };
+  // The _headers file only covers static assets; the admin is served by the
+  // Worker, so set its own hardening headers here (no indexing, no framing,
+  // no MIME sniffing of the JSON/HTML responses).
+  const headers = {
+    "X-Robots-Tag": "noindex, nofollow",
+    "X-Frame-Options": "DENY",
+    "X-Content-Type-Options": "nosniff",
+    "Referrer-Policy": "no-referrer",
+  };
 
   if (!env.ADMIN_PASSWORD || !env.ADMIN_SESSION_KEY) {
     return html("<h1>Admin not configured</h1><p>Set the ADMIN_PASSWORD and ADMIN_SESSION_KEY secrets.</p>", 503, headers);
