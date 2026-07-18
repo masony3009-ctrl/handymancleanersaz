@@ -10,9 +10,21 @@ const FROM = "requests@handymancleanersaz.com";
 const MAX_FIELD = 2000; // per-field length cap
 const MAX_FIELDS = 40;
 
+const CANONICAL_HOST = "handymancleanersaz.com";
+const LOCAL_HOSTS = new Set(["127.0.0.1", "localhost", "[::1]"]);
+
 export default {
   async fetch(request, env, ctx) {
     const url = new URL(request.url);
+
+    // Canonical host + scheme: 301 www/http/workers.dev variants to the
+    // HTTPS apex so search engines see exactly one version of every URL.
+    if (!LOCAL_HOSTS.has(url.hostname) && (url.hostname !== CANONICAL_HOST || url.protocol !== "https:")) {
+      url.hostname = CANONICAL_HOST;
+      url.protocol = "https:";
+      url.port = "";
+      return Response.redirect(url.toString(), 301);
+    }
 
     if (url.pathname === "/admin" || url.pathname.startsWith("/admin/")) {
       return handleAdmin(request, env);
