@@ -65,7 +65,9 @@ The project intentionally avoids a heavy frontend framework. Its public pages re
 - Admin sessions use HMAC signatures with `HttpOnly`, `Secure`, and `SameSite=Strict` cookies.
 - Password comparison is performed in constant time and failed logins are delayed.
 - Customer-submitted values are rendered in the dashboard with `textContent` to prevent stored markup injection.
-- Form fields have size limits, required-field validation, and a honeypot for basic bot filtering.
+- Form fields have size limits, required-field validation, a 64 KiB total request cap, an allowlist, and a honeypot for basic bot filtering.
+- Public requests cannot overwrite an existing client's master contact details when a phone number matches; each request keeps its submitted contact snapshot.
+- Admin responses are non-cacheable, use a nonce-based Content Security Policy, and expire sessions after 24 hours.
 - The public form does not request door, garage, alarm, or calendar access credentials.
 - The site currently uses no advertising pixels or third-party analytics.
 

@@ -94,15 +94,15 @@
                 <legend>Contact</legend>
                 <label>
                   Name
-                  <input name="Name" type="text" autocomplete="name" required>
+                  <input name="Name" type="text" autocomplete="name" maxlength="100" required>
                 </label>
                 <label>
                   Phone
-                  <input name="Phone" type="tel" autocomplete="tel" required>
+                  <input name="Phone" type="tel" autocomplete="tel" maxlength="30" required>
                 </label>
                 <label class="full">
                   Email
-                  <input name="Email" type="email" autocomplete="email" placeholder="name@example.com">
+                  <input name="Email" type="email" autocomplete="email" maxlength="254" placeholder="name@example.com">
                 </label>
               </fieldset>
 
@@ -166,7 +166,8 @@
                 <legend>Property</legend>
                 <label class="full">
                   Property address
-                  <input name="Property address" type="text" autocomplete="street-address" placeholder="Street address, city, gate info" data-req>
+                  <input name="Property address" type="text" autocomplete="street-address" maxlength="300" placeholder="Street address and city (no access codes)" data-req>
+                  <span class="field-note">Do not enter gate, door, garage, lockbox, Wi-Fi, or alarm codes. We'll arrange access after booking.</span>
                 </label>
                 <label>
                   Bedrooms
@@ -210,12 +211,12 @@
                 <legend>Checklist and instructions</legend>
                 <label class="full">
                   Checklist, special instructions, or notes
-                  <textarea name="Checklist or notes" rows="4" placeholder="Parking, trash day, linens, restock list, photo requests, host preferences, etc."></textarea>
-                  <span class="field-note">Have a checklist file? We'll collect it when we confirm your booking. No door or alarm codes here, please — we'll arrange access after booking.</span>
+                  <textarea name="Checklist or notes" rows="4" maxlength="2000" placeholder="Parking, trash day, linens, restock list, photo requests, host preferences, etc."></textarea>
+                  <span class="field-note">Have a checklist file? We'll collect it when we confirm your booking. Never enter property-access codes on this form.</span>
                 </label>
                 <label class="full">
                   Add-ons or extra requests
-                  <textarea name="Add-ons or extra requests" rows="3" placeholder="Supply refills, handyman item, grill, patio, stains, appliance issue, extra laundry, anything beyond the standard checklist."></textarea>
+                  <textarea name="Add-ons or extra requests" rows="3" maxlength="2000" placeholder="Supply refills, handyman item, grill, patio, stains, appliance issue, extra laundry, anything beyond the standard checklist."></textarea>
                 </label>
               </fieldset>
 
@@ -224,7 +225,7 @@
                 <legend>Handyman details</legend>
                 <label class="full">
                   Property address
-                  <input name="Handyman address" type="text" autocomplete="street-address" placeholder="Street address, city">
+                  <input name="Handyman address" type="text" autocomplete="street-address" maxlength="300" placeholder="Street address and city (no access codes)">
                 </label>
                 <label>
                   Preferred date
@@ -233,7 +234,7 @@
                 </label>
                 <label class="full">
                   Describe the fixes
-                  <textarea name="Handyman description" rows="4" placeholder="e.g. TV mount, ceiling fan, faucet swap, drywall patch, blinds, furniture assembly — anything on your punch list."></textarea>
+                  <textarea name="Handyman description" rows="4" maxlength="2000" placeholder="e.g. TV mount, ceiling fan, faucet swap, drywall patch, blinds, furniture assembly — anything on your punch list."></textarea>
                 </label>
               </fieldset>
 
@@ -242,11 +243,11 @@
                 <legend>Tell us more</legend>
                 <label class="full">
                   Property address
-                  <input name="Address" type="text" autocomplete="street-address" placeholder="Street address, city">
+                  <input name="Address" type="text" autocomplete="street-address" maxlength="300" placeholder="Street address and city (no access codes)">
                 </label>
                 <label class="full">
                   How can we help?
-                  <textarea name="Message" rows="5" placeholder="Tell us what you need and we'll get right back to you."></textarea>
+                  <textarea name="Message" rows="5" maxlength="2000" placeholder="Tell us what you need and we'll get right back to you."></textarea>
                 </label>
               </fieldset>
 

@@ -9,6 +9,47 @@ const DEST = "handymancleanersaz@gmail.com";
 const FROM = "requests@handymancleanersaz.com";
 const MAX_FIELD = 2000; // per-field length cap
 const MAX_FIELDS = 40;
+const MAX_BODY_BYTES = 64 * 1024;
+
+const ALLOWED_FIELDS = new Set([
+  "website",
+  "Name",
+  "Phone",
+  "Email",
+  "Service type",
+  "Cleaning date",
+  "Cleaning date ISO",
+  "Preferred arrival time",
+  "Same-day turnover",
+  "Guest checkout time",
+  "Next guest check-in time",
+  "Property address",
+  "Bedrooms",
+  "Bathrooms",
+  "Current condition",
+  "Supplies and linens",
+  "Calendar sync requested",
+  "Checklist or notes",
+  "Add-ons or extra requests",
+  "Handyman address",
+  "Handyman preferred date",
+  "Handyman preferred date ISO",
+  "Handyman description",
+  "Address",
+  "Message",
+  "Acknowledgment",
+]);
+
+const SERVICE_TYPES = new Map([
+  ["turnover", "Turnover cleaning for an Airbnb property (one-time)"],
+  ["Turnover cleaning for an Airbnb property (one-time)", "Turnover cleaning for an Airbnb property (one-time)"],
+  ["recurring", "Recurring cleaning for Airbnb hosts / calendar sync"],
+  ["Recurring cleaning for Airbnb hosts / calendar sync", "Recurring cleaning for Airbnb hosts / calendar sync"],
+  ["handyman", "Handyman / repairs & installs"],
+  ["Handyman / repairs & installs", "Handyman / repairs & installs"],
+  ["other", "Something else / not sure"],
+  ["Something else / not sure", "Something else / not sure"],
+]);
 
 const CANONICAL_HOST = "handymancleanersaz.com";
 const LOCAL_HOSTS = new Set(["127.0.0.1", "localhost", "[::1]"]);
@@ -37,6 +78,9 @@ export default {
       try {
         return await handleRequestForm(request, env);
       } catch (err) {
+        if (err instanceof RequestInputError) {
+          return json({ ok: false, error: err.message }, err.status);
+        }
         console.error("request-form error:", err && err.message);
         return json(
           { ok: false, error: "Something went wrong on our end. Please email " + DEST + " or call 650-265-1193." },
@@ -59,23 +103,29 @@ async function handleRequestForm(request, env) {
   }
 
   // Validate the required contact basics.
-  const name = clean(fields["Name"]);
-  const phoneRaw = clean(fields["Phone"]);
+  const name = singleLine(fields["Name"], 100);
+  const phoneRaw = singleLine(fields["Phone"], 30);
   const phone = phoneRaw.replace(/\D/g, "");
-  const email = clean(fields["Email"]);
-  const serviceType = clean(fields["Service type"]);
+  const email = singleLine(fields["Email"], 254);
+  const serviceType = SERVICE_TYPES.get(singleLine(fields["Service type"], 100));
   const consent = clean(fields["Acknowledgment"]);
 
-  if (!name || phone.length < 10 || !serviceType) {
+  if (!name || phone.length < 10 || phone.length > 15 || !serviceType) {
     return json({ ok: false, error: "Please fill in your name, a valid phone number, and the service you need." }, 400);
+  }
+  if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    return json({ ok: false, error: "Please enter a valid email address or leave the email field blank." }, 400);
   }
   if (!consent) {
     return json({ ok: false, error: "Please check the box agreeing to the Privacy Policy and Terms." }, 400);
   }
 
-  // Store: dedupe the client by phone, then record the request.
+  // A public submission may create a client, but it must never overwrite an
+  // existing client's trusted contact details just because the phone matches.
+  // Every submission remains available as an immutable snapshot in details.
   const address = clean(
-    fields["Property address"] || fields["Handyman address"] || fields["Address"] || ""
+    fields["Property address"] || fields["Handyman address"] || fields["Address"] || "",
+    300
   );
   const requestedDate = clean(
     fields["Cleaning date ISO"] || fields["Handyman preferred date ISO"] ||
@@ -84,9 +134,7 @@ async function handleRequestForm(request, env) {
 
   await env.DB.prepare(
     `INSERT INTO clients (name, phone, email) VALUES (?1, ?2, ?3)
-     ON CONFLICT(phone) DO UPDATE SET
-       name = excluded.name,
-       email = CASE WHEN excluded.email <> '' THEN excluded.email ELSE clients.email END`
+     ON CONFLICT(phone) DO NOTHING`
   ).bind(name, phone, email).run();
 
   const client = await env.DB.prepare(`SELECT id FROM clients WHERE phone = ?1`).bind(phone).first();
@@ -109,25 +157,66 @@ async function handleRequestForm(request, env) {
 
 async function readSubmission(request) {
   const ct = (request.headers.get("content-type") || "").toLowerCase();
+  const mediaType = ct.split(";", 1)[0].trim();
   const fields = {};
   let wantsHtml = false;
 
-  if (ct.includes("application/json")) {
-    const body = await request.json();
+  if (mediaType === "application/json") {
+    const raw = await readBoundedText(request);
+    let body;
+    try {
+      body = JSON.parse(raw);
+    } catch {
+      throw new RequestInputError(400, "The request could not be read. Please refresh the page and try again.");
+    }
+    if (!body || Array.isArray(body) || typeof body !== "object") {
+      throw new RequestInputError(400, "The request could not be read. Please refresh the page and try again.");
+    }
     for (const [k, v] of Object.entries(body || {})) {
       if (Object.keys(fields).length >= MAX_FIELDS) break;
-      fields[String(k).slice(0, 100)] = String(v == null ? "" : v).slice(0, MAX_FIELD);
+      const key = String(k).slice(0, 100);
+      if (!ALLOWED_FIELDS.has(key)) continue;
+      fields[key] = String(v == null ? "" : v).replace(/\0/g, "").slice(0, MAX_FIELD);
     }
-  } else {
+  } else if (mediaType === "application/x-www-form-urlencoded") {
     // Plain form post (no-JS fallback).
     wantsHtml = true;
-    const form = await request.formData();
-    for (const [k, v] of form.entries()) {
+    const form = new URLSearchParams(await readBoundedText(request));
+    for (const [k, v] of form) {
       if (Object.keys(fields).length >= MAX_FIELDS) break;
-      if (typeof v === "string") fields[String(k).slice(0, 100)] = v.slice(0, MAX_FIELD);
+      const key = String(k).slice(0, 100);
+      if (!ALLOWED_FIELDS.has(key)) continue;
+      fields[key] = String(v).replace(/\0/g, "").slice(0, MAX_FIELD);
     }
+  } else {
+    throw new RequestInputError(415, "Unsupported request format. Please refresh the page and try again.");
   }
   return { fields, wantsHtml };
+}
+
+async function readBoundedText(request) {
+  const declaredLength = Number(request.headers.get("content-length"));
+  if (Number.isFinite(declaredLength) && declaredLength > MAX_BODY_BYTES) {
+    throw new RequestInputError(413, "That request is too large. Please shorten the notes and try again.");
+  }
+  if (!request.body) return "";
+
+  const reader = request.body.getReader();
+  const decoder = new TextDecoder();
+  let total = 0;
+  let text = "";
+
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    total += value.byteLength;
+    if (total > MAX_BODY_BYTES) {
+      await reader.cancel();
+      throw new RequestInputError(413, "That request is too large. Please shorten the notes and try again.");
+    }
+    text += decoder.decode(value, { stream: true });
+  }
+  return text + decoder.decode();
 }
 
 async function sendNotification(env, fields, serviceType, requestedDate) {
@@ -156,20 +245,48 @@ async function sendNotification(env, fields, serviceType, requestedDate) {
   await env.NOTIFY.send(new EmailMessage(FROM, DEST, raw));
 }
 
-function clean(v) {
-  return String(v == null ? "" : v).trim().slice(0, MAX_FIELD);
+function clean(v, max = MAX_FIELD) {
+  return String(v == null ? "" : v).replace(/\0/g, "").trim().slice(0, max);
+}
+
+function singleLine(v, max) {
+  return clean(v, max).replace(/[\r\n\t]/g, " ").replace(/\s{2,}/g, " ");
 }
 
 function json(obj, status = 200) {
   return new Response(JSON.stringify(obj), {
     status,
-    headers: { "content-type": "application/json; charset=utf-8" },
+    headers: {
+      "content-type": "application/json; charset=utf-8",
+      "Cache-Control": "no-store, max-age=0",
+      "X-Content-Type-Options": "nosniff",
+      "Referrer-Policy": "no-referrer",
+      "Strict-Transport-Security": "max-age=31536000; includeSubDomains",
+    },
   });
 }
 
 function htmlThanks() {
   return new Response(
     `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="robots" content="noindex"><title>Request received | HandymanCleaners</title><link rel="stylesheet" href="/styles.css"></head><body><main style="display:grid;place-items:center;min-height:70vh;padding:24px;text-align:center;"><div><h1 style="font-size:34px;">Request received</h1><p style="max-width:460px;color:#5c6b76;">Thanks - we have your request and will get back to you shortly by phone, text, or email.</p><p><a class="button primary" href="/" style="display:inline-flex;min-height:46px;align-items:center;padding:0 22px;background:#0aa5a0;color:#fff;border-radius:10px;text-decoration:none;font-weight:800;">Back to the site</a></p></div></main></body></html>`,
-    { status: 200, headers: { "content-type": "text/html; charset=utf-8" } }
+    {
+      status: 200,
+      headers: {
+        "content-type": "text/html; charset=utf-8",
+        "Cache-Control": "no-store, max-age=0",
+        "Content-Security-Policy": "default-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; object-src 'none'",
+        "X-Content-Type-Options": "nosniff",
+        "X-Frame-Options": "DENY",
+        "Referrer-Policy": "no-referrer",
+        "Strict-Transport-Security": "max-age=31536000; includeSubDomains",
+      },
+    }
   );
+}
+
+class RequestInputError extends Error {
+  constructor(status, message) {
+    super(message);
+    this.status = status;
+  }
 }

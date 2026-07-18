@@ -12,6 +12,8 @@ package-lock.json
 node_modules
 README.md
 COMPLIANCE_NOTES.md
+SEO-BASELINE-*.md
+SECURITY-*.md
 .gitignore
 .assetsignore
 .claude

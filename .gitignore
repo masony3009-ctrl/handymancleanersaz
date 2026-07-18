@@ -1,6 +1,7 @@
 # Internal compliance notes and strategy docs — never publish to the public repo or website
 COMPLIANCE_NOTES.md
 SEO-BASELINE-*.md
+SECURITY-*.md
 
 # Agent-local configuration — never commit
 .claude/

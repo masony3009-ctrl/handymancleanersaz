@@ -3,12 +3,14 @@
 // (ADMIN_SESSION_KEY secret). No third-party services.
 
 const COOKIE = "hc_admin";
-const SESSION_HOURS = 24 * 7; // 7 days
+const SESSION_HOURS = 24;
+const MAX_ADMIN_BODY_BYTES = 16 * 1024;
 const STATUSES = ["new", "contacted", "confirmed", "done", "declined"];
 
 export async function handleAdmin(request, env) {
   const url = new URL(request.url);
   const path = url.pathname;
+  const nonce = crypto.randomUUID();
   // The _headers file only covers static assets; the admin is served by the
   // Worker, so set its own hardening headers here (no indexing, no framing,
   // no MIME sniffing of the JSON/HTML responses).
@@ -17,6 +19,11 @@ export async function handleAdmin(request, env) {
     "X-Frame-Options": "DENY",
     "X-Content-Type-Options": "nosniff",
     "Referrer-Policy": "no-referrer",
+    "Cache-Control": "no-store, max-age=0",
+    "Pragma": "no-cache",
+    "Strict-Transport-Security": "max-age=31536000; includeSubDomains",
+    "Permissions-Policy": "geolocation=(), microphone=(), camera=()",
+    "Content-Security-Policy": `default-src 'none'; style-src 'nonce-${nonce}'; script-src 'nonce-${nonce}'; connect-src 'self'; form-action 'self'; base-uri 'none'; frame-ancestors 'none'`,
   };
 
   if (!env.ADMIN_PASSWORD || !env.ADMIN_SESSION_KEY) {
@@ -24,7 +31,7 @@ export async function handleAdmin(request, env) {
   }
 
   if (path === "/admin/login" && request.method === "POST") {
-    return login(request, env, headers);
+    return login(request, env, headers, nonce);
   }
   if (path === "/admin/logout" && request.method === "POST") {
     return new Response(null, {
@@ -36,7 +43,7 @@ export async function handleAdmin(request, env) {
   const authed = await hasValidSession(request, env);
 
   if (path === "/admin" || path === "/admin/") {
-    return authed ? html(dashboardPage(), 200, headers) : html(loginPage(false), 200, headers);
+    return authed ? html(dashboardPage(nonce), 200, headers) : html(loginPage(false, nonce), 200, headers);
   }
   if (!authed) {
     return json({ ok: false, error: "Not signed in" }, 401, headers);
@@ -55,13 +62,12 @@ export async function handleAdmin(request, env) {
 
 // ---------- auth ----------
 
-async function login(request, env, headers) {
-  const form = await request.formData().catch(() => null);
-  const given = form ? String(form.get("password") || "") : "";
+async function login(request, env, headers, nonce) {
+  const given = await readAdminFormPassword(request).catch(() => "");
   const ok = await constantTimeEqual(given, env.ADMIN_PASSWORD);
   if (!ok) {
     await new Promise((r) => setTimeout(r, 400)); // slow brute force
-    return html(loginPage(true), 401, headers);
+    return html(loginPage(true, nonce), 401, headers);
   }
   const exp = Date.now() + SESSION_HOURS * 3600 * 1000;
   const sig = await sign(String(exp), env.ADMIN_SESSION_KEY);
@@ -119,7 +125,9 @@ async function dataEndpoint(env, headers) {
      ORDER BY r.requested_date ASC LIMIT 100`
   ).all();
   const seen = new Set(requests.results.map((r) => r.id));
-  const merged = requests.results.concat(upcoming.results.filter((r) => !seen.has(r.id)));
+  const merged = requests.results
+    .concat(upcoming.results.filter((r) => !seen.has(r.id)))
+    .map(withSubmittedContact);
   const clients = await env.DB.prepare(
     `SELECT c.id, c.name, c.phone, c.email, c.first_seen, c.notes,
             COUNT(r.id) AS request_count
@@ -130,7 +138,7 @@ async function dataEndpoint(env, headers) {
 }
 
 async function statusEndpoint(request, env, headers) {
-  const body = await request.json().catch(() => ({}));
+  const body = await readAdminJson(request).catch(() => ({}));
   const id = Number(body.id);
   const status = String(body.status || "");
   if (!Number.isInteger(id) || !STATUSES.includes(status)) {
@@ -141,7 +149,7 @@ async function statusEndpoint(request, env, headers) {
 }
 
 async function noteEndpoint(request, env, headers) {
-  const body = await request.json().catch(() => ({}));
+  const body = await readAdminJson(request).catch(() => ({}));
   const id = Number(body.id);
   const notes = String(body.notes || "").slice(0, 2000);
   if (!Number.isInteger(id)) return json({ ok: false, error: "Bad id" }, 400, headers);
@@ -159,10 +167,63 @@ function html(body, status, extra) {
   return new Response(body, { status, headers: { "content-type": "text/html; charset=utf-8", ...extra } });
 }
 
+async function readAdminFormPassword(request) {
+  const mediaType = (request.headers.get("content-type") || "").toLowerCase().split(";", 1)[0].trim();
+  if (mediaType !== "application/x-www-form-urlencoded") return "";
+  const form = new URLSearchParams(await readAdminBody(request));
+  return String(form.get("password") || "").slice(0, 256);
+}
+
+async function readAdminJson(request) {
+  const mediaType = (request.headers.get("content-type") || "").toLowerCase().split(";", 1)[0].trim();
+  if (mediaType !== "application/json") throw new Error("Unsupported content type");
+  const parsed = JSON.parse(await readAdminBody(request));
+  if (!parsed || Array.isArray(parsed) || typeof parsed !== "object") throw new Error("Invalid JSON body");
+  return parsed;
+}
+
+async function readAdminBody(request) {
+  const declaredLength = Number(request.headers.get("content-length"));
+  if (Number.isFinite(declaredLength) && declaredLength > MAX_ADMIN_BODY_BYTES) throw new Error("Body too large");
+  if (!request.body) return "";
+
+  const reader = request.body.getReader();
+  const decoder = new TextDecoder();
+  let total = 0;
+  let text = "";
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    total += value.byteLength;
+    if (total > MAX_ADMIN_BODY_BYTES) {
+      await reader.cancel();
+      throw new Error("Body too large");
+    }
+    text += decoder.decode(value, { stream: true });
+  }
+  return text + decoder.decode();
+}
+
+function withSubmittedContact(row) {
+  const copy = { ...row };
+  try {
+    const details = JSON.parse(row.details || "{}");
+    const submittedName = String(details.Name || "").replace(/[\r\n\t]/g, " ").trim().slice(0, 100);
+    const submittedPhone = String(details.Phone || "").replace(/\D/g, "");
+    const submittedEmail = String(details.Email || "").replace(/[\r\n\t]/g, "").trim().slice(0, 254);
+    if (submittedName) copy.name = submittedName;
+    if (submittedPhone.length >= 10 && submittedPhone.length <= 15) copy.phone = submittedPhone;
+    if (/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(submittedEmail)) copy.email = submittedEmail;
+  } catch {
+    // Older malformed details keep the stable client contact as a fallback.
+  }
+  return copy;
+}
+
 // ---------- pages ----------
 
-function loginPage(failed) {
-  return `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="robots" content="noindex"><title>Admin | HandymanCleaners</title><style>
+function loginPage(failed, nonce) {
+  return `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="robots" content="noindex"><title>Admin | HandymanCleaners</title><style nonce="${nonce}">
   body{margin:0;font-family:Inter,Arial,sans-serif;background:#f3f7f7;display:grid;place-items:center;min-height:100vh;color:#233038}
   form{background:#fff;border:1px solid #e3e9ec;border-radius:6px;padding:32px;box-shadow:0 16px 38px rgba(30,42,50,.10);display:grid;gap:14px;width:min(340px,90vw)}
   h1{margin:0;font-size:22px}
@@ -174,15 +235,15 @@ function loginPage(failed) {
   <form method="post" action="/admin/login">
     <h1>HandymanCleaners Admin</h1>
     ${failed ? '<p class="err">Wrong password - try again.</p>' : ""}
-    <input type="password" name="password" placeholder="Password" autocomplete="current-password" autofocus required>
+    <input type="password" name="password" maxlength="256" placeholder="Password" autocomplete="current-password" autofocus required>
     <button type="submit">Sign In</button>
   </form></body></html>`;
 }
 
-function dashboardPage() {
+function dashboardPage(nonce) {
   // Data renders client-side with textContent only (no innerHTML of stored values)
   // so customer-submitted text can never inject markup into the admin page.
-  return `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="robots" content="noindex"><title>Admin | HandymanCleaners</title><style>
+  return `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="robots" content="noindex"><title>Admin | HandymanCleaners</title><style nonce="${nonce}">
   :root{--teal:#0aa5a0;--teal-dark:#087f7b;--ink:#233038;--muted:#5c6b76;--light:#f3f7f7;--line:#e3e9ec}
   body{margin:0;font-family:Inter,Arial,sans-serif;background:var(--light);color:var(--ink)}
   header{display:flex;justify-content:space-between;align-items:center;background:#fff;border-bottom:1px solid var(--line);padding:14px 20px;position:sticky;top:0}
@@ -235,7 +296,7 @@ function dashboardPage() {
     <h2>Clients</h2>
     <div id="clients"></div>
   </main>
-  <script>
+  <script nonce="${nonce}">
   var STATUSES = ${JSON.stringify(STATUSES)};
   var state = { filter: "all", q: "", data: null };
 
@@ -402,7 +463,7 @@ function dashboardPage() {
       }
       var ta = el("textarea");
       ta.rows = 2;
-      ta.placeholder = "Notes (gate codes, preferences, linen counts...)";
+      ta.placeholder = "Preferences, linen counts, and supply notes - never store access codes here";
       ta.value = c.notes || "";
       var saved = el("span", "saved", "Saved");
       var t;
