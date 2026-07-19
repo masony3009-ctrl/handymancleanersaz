@@ -1,7 +1,4 @@
 # Cloudflare Pages redirects
-# Old Airbnb-branded turnover slug -> new platform-neutral slug (301 permanent)
-/services/airbnb-turnover-cleaning/  /services/vacation-rental-turnover-cleaning/  301
-/services/airbnb-turnover-cleaning   /services/vacation-rental-turnover-cleaning/  301
 # Office cleaning service discontinued -> homepage
 /services/office-cleaning/  /  301
 /services/office-cleaning   /  301

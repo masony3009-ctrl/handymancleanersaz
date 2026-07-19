@@ -1002,6 +1002,14 @@ textarea {
   font-weight: 600;
 }
 
+.optional {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: none;
+  letter-spacing: 0;
+}
+
 .form-status {
   grid-column: 1 / -1;
   margin: 0;
