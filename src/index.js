@@ -84,7 +84,7 @@ export default {
         }
         console.error("request-form error:", err && err.message);
         return json(
-          { ok: false, error: "Something went wrong on our end. Please email " + DEST + " or call 650-265-1193." },
+          { ok: false, error: "Something went wrong on our end. Please email " + DEST + " or call 480-800-7789." },
           500
         );
       }

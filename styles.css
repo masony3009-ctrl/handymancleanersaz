@@ -1535,6 +1535,25 @@ footer {
     padding: 70px 0;
   }
 
+  .hero:not(.compact) .hero-inner {
+    gap: 12px;
+    padding: 44px 0 54px;
+  }
+
+  .hero:not(.compact) h1 {
+    font-size: 40px;
+    line-height: 1.02;
+  }
+
+  .hero:not(.compact) .hero-eyebrow {
+    font-size: 16px;
+    letter-spacing: 4px;
+  }
+
+  .hero:not(.compact) .hero-lede {
+    font-size: 16px;
+  }
+
   .hero-actions,
   .hero-actions .button {
     width: 100%;
@@ -2496,4 +2515,9 @@ button.button[disabled] {
     font-size: 11px;
     letter-spacing: 0.6px;
   }
+}
+.footer-hours {
+  display: block;
+  color: #dce7eb;
+  font-size: 14px;
 }
