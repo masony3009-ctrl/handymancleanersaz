@@ -367,6 +367,10 @@ footer a,
   box-shadow: var(--shadow);
 }
 
+.about-photo.team {
+  object-position: 50% 30%;
+}
+
 .checks {
   display: grid;
   gap: 12px;
