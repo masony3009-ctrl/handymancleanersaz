@@ -298,6 +298,18 @@ function dashboardPage(nonce) {
   </main>
   <script nonce="${nonce}">
   var STATUSES = ${JSON.stringify(STATUSES)};
+  var REVIEW_LINK = "https://g.page/r/Cc5ISKbItioTEBM/review";
+
+  function reviewLink(parent, name, phone) {
+    if (!phone) return;
+    var first = String(name || "").trim().split(" ")[0];
+    var msg = "Hi " + (first || "there") + "! Thanks for trusting us with your property. " +
+      "If everything looked guest-ready, would you mind leaving us an honest Google review? " +
+      "It means a lot to our father-and-son team: " + REVIEW_LINK + " \\u2014 Mason";
+    var a = el("a", "act", "Ask for review");
+    a.href = "sms:" + phone + "?&body=" + encodeURIComponent(msg);
+    parent.appendChild(a);
+  }
   var state = { filter: "all", q: "", data: null };
 
   function el(tag, cls, text) {
@@ -403,6 +415,7 @@ function dashboardPage(nonce) {
       var who = el("div", "who");
       who.appendChild(el("span", null, r.name + " "));
       contactLinks(who, r.phone, r.email);
+      reviewLink(who, r.name, r.phone);
       row1.appendChild(who);
       var sel = el("select", "s-" + r.status);
       STATUSES.forEach(function (s) {
@@ -445,6 +458,7 @@ function dashboardPage(nonce) {
       var who = el("div", "who");
       who.appendChild(el("span", null, c.name + " "));
       contactLinks(who, c.phone, c.email);
+      reviewLink(who, c.name, c.phone);
       row1.appendChild(who);
       row1.appendChild(el("div", "meta", c.request_count + " request" + (c.request_count === 1 ? "" : "s") + " - since " + fmtDate(c.first_seen)));
       card.appendChild(row1);
