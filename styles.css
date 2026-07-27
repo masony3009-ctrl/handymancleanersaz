@@ -2525,3 +2525,136 @@ button.button[disabled] {
   color: #dce7eb;
   font-size: 14px;
 }
+
+/* Contact card: a non-blocking corner invite to text us / book a walkthrough.
+   Deliberately NOT a modal - no overlay, no scroll lock, page stays usable. */
+
+.cp-card {
+  position: fixed;
+  right: 20px;
+  bottom: 20px;
+  z-index: 120;
+  width: min(340px, calc(100vw - 32px));
+  padding: 20px 20px 18px;
+  background: #ffffff;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  box-shadow: 0 18px 44px rgba(30, 42, 50, 0.22);
+  transform: translateY(14px);
+  opacity: 0;
+  animation: cp-rise 0.28s cubic-bezier(0.2, 0.7, 0.3, 1) forwards;
+}
+
+@keyframes cp-rise {
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.cp-card.cp-closing {
+  animation: cp-sink 0.18s ease forwards;
+}
+
+@keyframes cp-sink {
+  to {
+    transform: translateY(14px);
+    opacity: 0;
+  }
+}
+
+.cp-close {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  background: none;
+  border: 0;
+  border-radius: 50%;
+  color: var(--muted);
+  font-size: 20px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.cp-close:hover {
+  background: var(--light);
+  color: var(--ink);
+}
+
+.cp-kicker {
+  margin: 0 0 5px;
+  color: var(--teal-dark);
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 1.3px;
+  text-transform: uppercase;
+}
+
+.cp-card h2 {
+  margin: 0 0 8px;
+  padding-right: 24px;
+  font-size: 19px;
+  line-height: 1.2;
+}
+
+.cp-card h2::after {
+  display: none;
+}
+
+.cp-card p {
+  margin: 0 0 14px;
+  color: var(--muted);
+  font-size: 13.5px;
+  line-height: 1.55;
+}
+
+.cp-actions {
+  display: grid;
+  gap: 8px;
+}
+
+.cp-actions .button {
+  width: 100%;
+  min-height: 44px;
+  justify-content: center;
+  font-size: 12px;
+}
+
+.cp-later {
+  padding: 2px;
+  background: none;
+  border: 0;
+  color: var(--muted);
+  font: inherit;
+  font-size: 12.5px;
+  font-weight: 600;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.cp-later:hover {
+  color: var(--ink);
+}
+
+/* Phones: sit above the sticky call/quote bar, full width */
+@media (max-width: 760px) {
+  .cp-card {
+    right: 12px;
+    left: 12px;
+    bottom: 92px; /* clears the fixed mobile call/quote bar (12px + ~62px tall) */
+    width: auto;
+    padding: 18px 18px 16px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cp-card,
+  .cp-card.cp-closing {
+    animation-duration: 0.01ms;
+  }
+}
