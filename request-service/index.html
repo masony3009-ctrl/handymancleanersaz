@@ -388,6 +388,17 @@
           status.scrollIntoView({ block: "nearest", behavior: "smooth" });
         }
 
+        // Builds the prefilled fallback email only when the link is clicked,
+        // so the submitted values never sit in the page markup. Set by the
+        // submit handler's error path.
+        var emailFallback = null;
+        status.addEventListener("click", function (event) {
+          var link = event.target.closest("[data-email-fallback]");
+          if (!link || !emailFallback) return;
+          event.preventDefault();
+          window.location.href = emailFallback();
+        });
+
         var submitBtn = document.getElementById("form-submit");
 
         form.addEventListener("submit", function (event) {
@@ -403,6 +414,10 @@
             var fieldName = label ? label.textContent.trim().split("\n")[0].trim().toLowerCase() : "required field";
             setStatus("Please fill in the " + fieldName + " so we can check availability.", true);
             missing.focus();
+            // Field name only - analytics never sees what was typed.
+            form.dispatchEvent(new CustomEvent("hc:form-validation-block", {
+              detail: { field: missing.getAttribute("name") || fieldName }
+            }));
             return;
           }
           var data = collectFields();
@@ -427,22 +442,34 @@
               syncFields();
               setStatus("Request sent! We have it and will get back to you shortly by phone, text, or email.", false);
               submitBtn.textContent = "Request Sent";
+              form.dataset.submitted = "1"; // suppresses the abandonment event
+              form.dispatchEvent(new CustomEvent("hc:form-success"));
             } else {
               throw new Error(r.body && r.body.error ? r.body.error : "Request failed");
             }
           }).catch(function (err) {
-            var lines = [];
-            for (var k in data) { if (k !== "website") lines.push(k + ": " + data[k]); }
-            var mailto = "mailto:handymancleanersaz@gmail.com" +
-              "?subject=" + encodeURIComponent("Service request - " + (data["Service type"] || "")) +
-              "&body=" + encodeURIComponent(lines.join("\n"));
+            // The fallback email body contains the customer's name, phone,
+            // address and email. It is built on click and never written into
+            // the DOM, so it cannot be picked up by session replay, browser
+            // extensions, or anything else reading the page. The href below
+            // is a plain address so the link still works without JS.
+            emailFallback = function () {
+              var lines = [];
+              for (var k in data) { if (k !== "website") lines.push(k + ": " + data[k]); }
+              return "mailto:handymancleanersaz@gmail.com" +
+                "?subject=" + encodeURIComponent("Service request - " + (data["Service type"] || "")) +
+                "&body=" + encodeURIComponent(lines.join("\n"));
+            };
             setStatus(
               (err && err.message && err.message !== "Request failed" ? err.message + " " : "We couldn't send your request just now. ") +
-              'You can <a href="' + mailto + '">send it by email instead</a>, or call or text Mason at <a href="tel:4808007789">480-800-7789</a>.',
+              'You can <a href="mailto:handymancleanersaz@gmail.com" data-email-fallback>send it by email instead</a>, or call or text Mason at <a href="tel:4808007789">480-800-7789</a>.',
               true
             );
             submitBtn.disabled = false;
             submitBtn.textContent = "Send Request";
+            form.dispatchEvent(new CustomEvent("hc:form-error", {
+              detail: { message: (err && err.message) || "unknown" }
+            }));
           }).finally(function () {
             form.removeAttribute("aria-busy");
           });
@@ -596,5 +623,6 @@
       })();
     </script>
     <script src="/site.js" defer></script>
+    <script src="/analytics.js" defer></script>
   </body>
 </html>

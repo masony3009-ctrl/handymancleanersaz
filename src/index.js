@@ -68,6 +68,13 @@ export default {
       return Response.redirect(url.toString(), 301);
     }
 
+    // Analytics runs first-party through /ph/* so the strict CSP stays
+    // 'self' and ad blockers (which block posthog.com by name) don't eat
+    // the traffic. See handlePostHogProxy.
+    if (url.pathname === "/ph" || url.pathname.startsWith("/ph/")) {
+      return handlePostHogProxy(request, url);
+    }
+
     if (url.pathname === "/admin" || url.pathname.startsWith("/admin/")) {
       return handleAdmin(request, env);
     }
@@ -94,6 +101,50 @@ export default {
     return env.ASSETS.fetch(request);
   },
 };
+
+// PostHog US cloud. /ph/static/* and /ph/array/* are the SDK bundles; every
+// other /ph/* path is event ingestion.
+const PH_ASSETS_HOST = "us-assets.i.posthog.com";
+const PH_API_HOST = "us.i.posthog.com";
+
+// Reverse-proxies analytics through our own origin. Two reasons this exists
+// instead of pointing the SDK straight at posthog.com: the site's CSP is
+// locked to 'self' for script-src and connect-src, and content blockers drop
+// requests to posthog.com by hostname, which would silently skew every number.
+async function handlePostHogProxy(request, url) {
+  // Strip the /ph prefix: /ph/e/ -> /e/, /ph/static/x.js -> /static/x.js
+  const path = url.pathname.slice("/ph".length) || "/";
+  const isAsset = path.startsWith("/static/") || path.startsWith("/array/");
+  const target = new URL(url.toString());
+  target.hostname = isAsset ? PH_ASSETS_HOST : PH_API_HOST;
+  target.protocol = "https:";
+  target.port = "";
+  target.pathname = path;
+
+  const headers = new Headers(request.headers);
+  headers.set("Host", target.hostname);
+  // Never forward our own session/admin cookies to a third party.
+  headers.delete("Cookie");
+  const ip = request.headers.get("CF-Connecting-IP");
+  if (ip) headers.set("X-Forwarded-For", ip);
+
+  try {
+    const upstream = await fetch(target.toString(), {
+      method: request.method,
+      headers,
+      body: request.method === "GET" || request.method === "HEAD" ? undefined : request.body,
+    });
+    const out = new Response(upstream.body, upstream);
+    // Upstream must not set cookies on our domain — the analytics client is
+    // configured cookieless and the privacy policy says so.
+    out.headers.delete("Set-Cookie");
+    return out;
+  } catch (err) {
+    // Analytics must never break the site: swallow and report empty.
+    console.error("posthog-proxy error:", err && err.message);
+    return new Response("", { status: 204 });
+  }
+}
 
 async function handleRequestForm(request, env) {
   const { fields, wantsHtml } = await readSubmission(request);

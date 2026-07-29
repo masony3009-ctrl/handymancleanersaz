@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="description" content="How HandymanCleaners collects, uses, and protects the information you share when you request cleaning or handyman service in Queen Creek, San Tan Valley, and Gilbert, AZ.">
+    <meta name="description" content="How HandymanCleaners collects, uses, and protects the information you share when you request cleaning or handyman service in the Southeast Valley, AZ.">
     <title>Privacy Policy | HandymanCleaners AZ</title>
     <link rel="canonical" href="https://handymancleanersaz.com/privacy/">
     <meta name="robots" content="noindex, follow">
@@ -73,7 +73,7 @@
 
             <p>This Privacy Policy explains how HandymanCleaners LLC ("we," "us," or "our") handles information when you visit this website or contact us to request cleaning or handyman service. We serve short-term rental hosts and small businesses in Queen Creek, San Tan Valley, and Gilbert, Arizona.</p>
 
-            <p>This website uses a Cloudflare Worker and customer database to process service requests. We collect information when you choose to submit the request form or contact us directly. The public website has no customer account system and no advertising trackers.</p>
+            <p>This website uses a Cloudflare Worker and customer database to process service requests. We collect information when you choose to submit the request form or contact us directly. The public website has no customer account system and no advertising trackers. We do use privacy-preserving website analytics to see which pages are useful and where our request form confuses people — it sets no cookies and records no personal information. See <a href="#cookies">Cookies and tracking</a> below.</p>
 
             <h2>Information we collect</h2>
             <p>We only collect what you choose to give us. Depending on how you reach out, that may include:</p>
@@ -109,11 +109,22 @@
             <ul>
               <li><strong>Cloudflare</strong> — hosts this website, stores our customer database (Cloudflare D1), and delivers form submissions to our email (Cloudflare Email Routing). Like most hosts, Cloudflare may keep standard server logs (such as IP address, browser type, and time of request) for security and reliability.</li>
               <li><strong>Google (Gmail)</strong> — we use Gmail to receive and store inquiry emails and to communicate with you.</li>
+              <li><strong>PostHog</strong> — website analytics and session replay, hosted in the United States. It tells us which pages people visit, where they click, and where they get stuck on our request form, so we can fix the confusing parts. Recordings have all typed values masked before they are sent (see <a href="#cookies">Cookies and tracking</a>). Analytics requests are routed through our own domain rather than loading a third-party script directly.</li>
             </ul>
-            <p>We do not currently use analytics, advertising pixels, a customer-relationship-management (CRM) tool, or an email-marketing service on this website. If we add any of these in the future, we will update this policy and provide any cookie notice or consent that the law requires before turning them on.</p>
+            <p>We do not use advertising pixels, a customer-relationship-management (CRM) tool, or an email-marketing service on this website. If we add any of these in the future, we will update this policy and provide any cookie notice or consent that the law requires before turning them on.</p>
 
-            <h2>Cookies and tracking</h2>
-            <p>This website does not set advertising or analytics cookies and does not track you across other sites. Our host may record ordinary server logs as described above. Because we do not use nonessential cookies, we do not display a cookie-consent banner. If that changes, we will update this policy first.</p>
+            <h2 id="cookies">Cookies and tracking</h2>
+            <p><strong>This website sets no cookies at all</strong> — not for advertising, not for analytics. Our analytics stores a single random ID in your browser's local storage so we can tell a returning visit from a new one. That ID is not tied to your name, email, or phone number, and it is not shared with anyone or used to follow you around other websites. Because we do not use cookies, there is no cookie-consent banner to click.</p>
+            <h3>Session replay</h3>
+            <p>We record how visitors move through this website — pages viewed, scrolling, and where you click — and can play that back as a video-like session. We use it to find the parts of the site that confuse people, particularly on our request form.</p>
+            <p><strong>Everything you type is hidden before the recording leaves your browser.</strong> Text boxes, dropdowns, and date fields appear as blocked-out shapes in the playback. We can see <em>that</em> you filled in the phone field; we cannot see your phone number. The same applies to your name, email address, and property address. This masking happens on your device, so the unmasked values are never transmitted to or stored by our analytics provider.</p>
+            <p>We do not record keystrokes, we do not capture your screen outside this website, and we have no access to other tabs, windows, or anything else on your device.</p>
+
+            <h3>What our analytics records on the request form</h3>
+            <p>We record <em>which</em> fields you filled in and where people stop filling the form. We never record <em>what</em> you typed. Your name, phone number, email address, and property address are sent only when you press Send Request, and they go to us — never to our analytics provider.</p>
+
+            <h3>Turning analytics off</h3>
+            <p>If your browser sends a “Do Not Track” or Global Privacy Control signal, we detect it and analytics never loads for you. You can also clear your browser's local storage for this site at any time to erase the ID.</p>
 
             <h2>Sharing your information</h2>
             <p>We do not sell your personal information, and we do not share it for advertising. We share information only:</p>
@@ -198,5 +209,6 @@
     </div>
 
       <script src="/site.js" defer></script>
+    <script src="/analytics.js" defer></script>
   </body>
 </html>

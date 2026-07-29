@@ -2,6 +2,8 @@
 
 User-agent: *
 Allow: /
+# Analytics proxy - not content, nothing to index
+Disallow: /ph/
 
 # AI search & assistant crawlers (explicitly welcome)
 User-agent: GPTBot
