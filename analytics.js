@@ -37,6 +37,11 @@
       // Session replay is ON. Every value a visitor types is masked before
       // the recording leaves their browser - we watch behaviour, not data.
       disable_session_recording: false,
+      // The project has console-log capture switched on; we don't want it.
+      // Nothing client-side logs anything useful (all console calls live in
+      // the Worker), and the privacy policy describes replay as pages,
+      // scrolling and clicks - console output is not in that description.
+      enable_recording_console_log: false,
       session_recording: {
         maskAllInputs: true,
         maskInputOptions: {
