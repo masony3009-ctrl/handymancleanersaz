@@ -36,6 +36,13 @@
     {
       "name": "NOTIFY",
       "destination_address": "handymancleanersaz@gmail.com"
+    },
+    // Texts the owner's phone via Verizon's email-to-SMS gateway. This address
+    // must ALSO be verified under Email Routing -> Destination addresses, the
+    // same as the Gmail one, or sends to it are rejected.
+    {
+      "name": "NOTIFY_SMS",
+      "destination_address": "4808007789@vtext.com"
     }
   ],
 
