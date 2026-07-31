@@ -1529,10 +1529,16 @@ footer {
     display: none;
   }
 
+  /* The fixed .mobile-sticky bar below carries the same CTA from this
+     breakpoint down, so a header button here is a duplicate that squeezes
+     the brand name until it runs underneath. Drop it and give the name
+     the full width. */
   .header-actions .button {
-    min-height: 40px;
-    padding: 0 14px;
-    font-size: 12px;
+    display: none;
+  }
+
+  .brand {
+    min-width: 0;
   }
 
   .hero-inner {
@@ -2512,12 +2518,6 @@ button.button[disabled] {
 
   .header-actions {
     gap: 8px;
-  }
-
-  .header-actions .button {
-    padding: 0 12px;
-    font-size: 11px;
-    letter-spacing: 0.6px;
   }
 }
 .footer-hours {
