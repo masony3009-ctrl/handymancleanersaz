@@ -303,9 +303,16 @@ function dashboardPage(nonce) {
   function reviewLink(parent, name, phone) {
     if (!phone) return;
     var first = String(name || "").trim().split(" ")[0];
+    // Asks everyone unconditionally and invites honest feedback either way.
+    // Google's policy forbids "review gating" - only soliciting reviews from
+    // customers you believe are happy - and the old "if everything looked
+    // guest-ready" opener did exactly that. Asking how the turnover went
+    // (rather than how we did) also tends to surface the words hosts
+    // actually search for.
     var msg = "Hi " + (first || "there") + "! Thanks for trusting us with your property. " +
-      "If everything looked guest-ready, would you mind leaving us an honest Google review? " +
-      "It means a lot to our father-and-son team: " + REVIEW_LINK + " \\u2014 Mason";
+      "Would you mind leaving an honest Google review about how the turnover went? " +
+      "Good or bad, it helps other hosts know what to expect, and it means a lot to " +
+      "our father-and-son team: " + REVIEW_LINK + " \\u2014 Mason";
     var a = el("a", "act", "Ask for review");
     a.href = "sms:" + phone + "?&body=" + encodeURIComponent(msg);
     parent.appendChild(a);
