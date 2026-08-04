@@ -347,9 +347,17 @@ async function sendNotification(env, fields, serviceType, requestedDate) {
     .replace(/[^\x20-\x7E]/g, " ")
     .slice(0, 150);
 
+  // Reply-To points at the customer, because the From address is send-only:
+  // requests@ has no inbox, so without this the owner's natural "hit Reply"
+  // response to a booking would silently go nowhere. The address was already
+  // format-validated in handleRequestForm, and singleLine() strips CR/LF so
+  // it cannot smuggle extra headers.
+  const customerEmail = singleLine(fields["Email"] || "", 254);
+
   const raw =
     `From: HandymanCleaners Website <${FROM}>\r\n` +
     `To: <${DEST}>\r\n` +
+    (customerEmail ? `Reply-To: <${customerEmail}>\r\n` : "") +
     `Subject: ${subjectSafe}\r\n` +
     `Message-ID: <${crypto.randomUUID()}@handymancleanersaz.com>\r\n` +
     `Date: ${new Date().toUTCString()}\r\n` +
