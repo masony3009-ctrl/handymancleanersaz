@@ -7,10 +7,6 @@ import { handleAdmin } from "./admin.js";
 
 const DEST = "handymancleanersaz@gmail.com";
 const FROM = "requests@handymancleanersaz.com";
-// Verizon's email-to-SMS gateway for the owner's phone. Anything sent here
-// arrives as a text. Must be verified as a destination address in the
-// Cloudflare dashboard (Email Routing -> Destination addresses) or sends fail.
-const SMS_DEST = "4808007789@vtext.com";
 const MAX_FIELD = 2000; // per-field length cap
 const MAX_FIELDS = 40;
 const MAX_BODY_BYTES = 64 * 1024;
@@ -56,7 +52,7 @@ const SERVICE_TYPES = new Map([
   ["Something else / not sure", "Something else / not sure"],
 ]);
 
-// Short forms of SERVICE_TYPES for the text alert - a phone screen has no
+// Short forms of SERVICE_TYPES for the phone alert - a notification has no
 // room for "Turnover cleaning for an Airbnb property (one-time)".
 const SERVICE_SHORT = new Map([
   ["Turnover cleaning for an Airbnb property (one-time)", "Turnover"],
@@ -217,12 +213,12 @@ async function handleRequestForm(request, env) {
     console.error("email send failed (request IS saved in D1):", err && err.message);
   }
 
-  // Separate try/catch on purpose: a failed text must not suppress the email,
+  // Separate try/catch on purpose: a failed push must not suppress the email,
   // and neither must fail the submission - the request is already in D1.
   try {
-    await sendSmsAlert(env, fields, serviceType, requestedDate);
+    await sendPushAlert(env, fields, serviceType, requestedDate);
   } catch (err) {
-    console.error("sms alert failed (request IS saved in D1):", err && err.message);
+    console.error("push alert failed (request IS saved in D1):", err && err.message);
   }
 
   return wantsHtml ? htmlThanks() : json({ ok: true });
@@ -292,34 +288,53 @@ async function readBoundedText(request) {
   return text + decoder.decode();
 }
 
-// Texts the owner via the carrier's email-to-SMS gateway. Deliberately terse:
-// gateways split anything past ~160 characters into several messages and strip
-// non-ASCII, so this carries only what's needed to act - what, who, what number
-// to call back, and when. Full detail is in the email and the admin dashboard.
-async function sendSmsAlert(env, fields, serviceType, requestedDate) {
-  if (!env.NOTIFY_SMS) return; // binding not deployed yet - stay quiet
+// Pushes a phone notification to the owner via ntfy.sh.
+//
+// This replaced Verizon's email-to-SMS gateway (4808007789@vtext.com), which
+// never worked: Cloudflare requires a verified destination address, and the
+// verification message Verizon was supposed to deliver never arrived. The
+// gateway silently swallowed it, which is exactly how these gateways fail as
+// carriers retire them. ntfy involves no carrier at all.
+//
+// NTFY_TOPIC is a Cloudflare secret, never a literal, because this repository
+// is public and an ntfy topic is effectively a bearer token - anyone who knows
+// it can subscribe and read every alert, and these carry a customer's name and
+// phone number. Rotate it by generating a new random topic, running
+// `wrangler secret put NTFY_TOPIC`, and re-subscribing on the phone.
+//
+// Kept deliberately terse: the phone notification is a nudge to act, not the
+// record. Full detail lives in the email and the admin dashboard.
+async function sendPushAlert(env, fields, serviceType, requestedDate) {
+  const topic = env.NTFY_TOPIC;
+  if (!topic) return; // secret not set - stay quiet rather than throwing
 
+  // ntfy carries the title in an HTTP header, so it has to be header-safe.
   const ascii = (v, max) => singleLine(v, max).replace(/[^\x20-\x7E]/g, " ").trim();
 
-  const subject = "New " + (SERVICE_SHORT.get(serviceType) || "Request") + " request";
+  const title = ascii("New " + (SERVICE_SHORT.get(serviceType) || "Request"), 60);
   const body = [
     ascii(fields["Name"] || "", 40),
     ascii(fields["Phone"] || "", 20),
     requestedDate ? ascii(requestedDate, 40) : "",
-  ].filter(Boolean).join("\r\n");
+  ].filter(Boolean).join("\n");
 
-  const raw =
-    `From: HandymanCleaners <${FROM}>\r\n` +
-    `To: <${SMS_DEST}>\r\n` +
-    `Subject: ${subject}\r\n` +
-    `Message-ID: <${crypto.randomUUID()}@handymancleanersaz.com>\r\n` +
-    `Date: ${new Date().toUTCString()}\r\n` +
-    `MIME-Version: 1.0\r\n` +
-    `Content-Type: text/plain; charset=utf-8\r\n` +
-    `\r\n` +
-    body + `\r\n`;
+  const res = await fetch("https://ntfy.sh/" + encodeURIComponent(topic), {
+    method: "POST",
+    headers: {
+      "Title": title,
+      "Priority": "high",
+      "Tags": "house",
+      "Click": "https://handymancleanersaz.com/admin",
+    },
+    body: body || "New request",
+  });
 
-  await env.NOTIFY_SMS.send(new EmailMessage(FROM, SMS_DEST, raw));
+  // fetch() only rejects on network failure, so a 4xx/5xx would otherwise pass
+  // silently and we'd believe alerts were working when they were not. That is
+  // the same mistake the vtext gateway hid behind - do not remove this.
+  if (!res.ok) {
+    throw new Error("ntfy responded " + res.status + " " + res.statusText);
+  }
 }
 
 async function sendNotification(env, fields, serviceType, requestedDate) {

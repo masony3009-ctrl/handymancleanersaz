@@ -32,17 +32,14 @@
   // Sends the inquiry email via Cloudflare Email Routing.
   // Requires Email Routing enabled on handymancleanersaz.com with this
   // destination address verified.
+  // Booking alerts to the owner's phone go via ntfy.sh push (see
+  // sendPushAlert), NOT email-to-SMS: Verizon's vtext gateway never delivered
+  // even Cloudflare's destination-verification message, so it was removed.
+  // The ntfy topic is the NTFY_TOPIC secret (wrangler secret put NTFY_TOPIC).
   "send_email": [
     {
       "name": "NOTIFY",
       "destination_address": "handymancleanersaz@gmail.com"
-    },
-    // Texts the owner's phone via Verizon's email-to-SMS gateway. This address
-    // must ALSO be verified under Email Routing -> Destination addresses, the
-    // same as the Gmail one, or sends to it are rejected.
-    {
-      "name": "NOTIFY_SMS",
-      "destination_address": "4808007789@vtext.com"
     }
   ],
 
