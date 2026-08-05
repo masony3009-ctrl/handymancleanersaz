@@ -325,14 +325,22 @@ async function sendPushAlert(env, fields, serviceType, requestedDate) {
     requestedDate ? ascii(requestedDate, 40) : "",
   ].filter(Boolean).join("\n");
 
+  // Anonymous publishes are rate-limited per source IP, and Cloudflare
+  // Workers share egress IPs with thousands of other tenants - the shared
+  // pool is permanently exhausted at ntfy.sh, so unauthenticated pushes get
+  // 429 essentially every time. An account access token (NTFY_TOKEN secret)
+  // bills against the account instead of the IP and bypasses that entirely.
+  const headers = {
+    "Title": title,
+    "Priority": "high",
+    "Tags": "house",
+    "Click": "https://handymancleanersaz.com/admin",
+  };
+  if (env.NTFY_TOKEN) headers["Authorization"] = "Bearer " + env.NTFY_TOKEN;
+
   const res = await fetch("https://ntfy.sh/" + encodeURIComponent(topic), {
     method: "POST",
-    headers: {
-      "Title": title,
-      "Priority": "high",
-      "Tags": "house",
-      "Click": "https://handymancleanersaz.com/admin",
-    },
+    headers,
     body: body || "New request",
   });
 
