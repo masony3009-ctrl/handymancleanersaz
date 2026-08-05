@@ -106,6 +106,13 @@ export default {
       }
     }
 
+    // Crawlers and older browsers request /favicon.ico unconditionally;
+    // serve the declared icon instead of a 404.
+    if (url.pathname === "/favicon.ico") {
+      url.pathname = "/assets/handymancleaners-logo-small.jpg";
+      return env.ASSETS.fetch(new Request(url.toString(), request));
+    }
+
     // Everything else: static site.
     return env.ASSETS.fetch(request);
   },
