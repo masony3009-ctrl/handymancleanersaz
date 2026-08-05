@@ -348,7 +348,13 @@ async function sendPushAlert(env, fields, serviceType, requestedDate) {
   // silently and we'd believe alerts were working when they were not. That is
   // the same mistake the vtext gateway hid behind - do not remove this.
   if (!res.ok) {
-    throw new Error("ntfy responded " + res.status + " " + res.statusText);
+    // Include ntfy's own error body: it names the specific limit that was
+    // hit, which distinguishes an account-quota problem from IP-based
+    // throttling of Cloudflare's shared egress addresses.
+    const detail = await res.text().catch(() => "");
+    throw new Error(
+      "ntfy responded " + res.status + " (auth=" + (env.NTFY_TOKEN ? "yes" : "NO TOKEN") + ") " + detail.slice(0, 200)
+    );
   }
 }
 
