@@ -295,66 +295,66 @@ async function readBoundedText(request) {
   return text + decoder.decode();
 }
 
-// Pushes a phone notification to the owner via ntfy.sh.
+// Pushes a phone notification to the owner via a Telegram bot.
 //
-// This replaced Verizon's email-to-SMS gateway (4808007789@vtext.com), which
-// never worked: Cloudflare requires a verified destination address, and the
-// verification message Verizon was supposed to deliver never arrived. The
-// gateway silently swallowed it, which is exactly how these gateways fail as
-// carriers retire them. ntfy involves no carrier at all.
+// Two dead ends preceded this, both worth not repeating:
+//   1. Verizon's email-to-SMS gateway (4808007789@vtext.com). Cloudflare
+//      requires a verified destination address and Verizon never delivered
+//      the verification message, which is how these gateways fail as carriers
+//      retire them.
+//   2. ntfy.sh. Its free tier meters by SOURCE IP, not by account - confirmed
+//      from its own error body, {"code":42908,...,"daily message quota
+//      reached"}, returned while the account itself had used 1 of 250
+//      messages and the access token was being sent correctly. Cloudflare
+//      Workers share egress IPs with thousands of tenants, so that shared
+//      quota is exhausted before the first booking of the day. An access
+//      token does NOT lift it. Do not retry ntfy from a Worker.
 //
-// NTFY_TOPIC is a Cloudflare secret, never a literal, because this repository
-// is public and an ntfy topic is effectively a bearer token - anyone who knows
-// it can subscribe and read every alert, and these carry a customer's name and
-// phone number. Rotate it by generating a new random topic, running
-// `wrangler secret put NTFY_TOPIC`, and re-subscribing on the phone.
+// Telegram meters per bot, so shared egress IPs are irrelevant.
 //
-// Kept deliberately terse: the phone notification is a nudge to act, not the
+// TELEGRAM_BOT_TOKEN and TELEGRAM_CHAT_ID are Cloudflare secrets, never
+// literals: this repository is public, and the bot token lets anyone send as
+// this bot. Alerts carry a customer's name and phone number.
+//
+// Kept deliberately terse - the notification is a nudge to act, not the
 // record. Full detail lives in the email and the admin dashboard.
 async function sendPushAlert(env, fields, serviceType, requestedDate) {
-  const topic = env.NTFY_TOPIC;
-  if (!topic) return; // secret not set - stay quiet rather than throwing
+  const token = env.TELEGRAM_BOT_TOKEN;
+  const chatId = env.TELEGRAM_CHAT_ID;
+  if (!token || !chatId) return; // not configured - stay quiet rather than throw
 
-  // ntfy carries the title in an HTTP header, so it has to be header-safe.
-  const ascii = (v, max) => singleLine(v, max).replace(/[^\x20-\x7E]/g, " ").trim();
+  const line = (v, max) => singleLine(v, max).trim();
 
-  const title = ascii("New " + (SERVICE_SHORT.get(serviceType) || "Request"), 60);
-  const body = [
-    ascii(fields["Name"] || "", 40),
-    ascii(fields["Phone"] || "", 20),
-    requestedDate ? ascii(requestedDate, 40) : "",
-  ].filter(Boolean).join("\n");
+  // Plain text on purpose. Telegram's Markdown and HTML parse modes require
+  // escaping, and these values are customer-supplied - a name containing an
+  // underscore or angle bracket would break the message or worse.
+  const text = [
+    "New " + (SERVICE_SHORT.get(serviceType) || "Request") + " request",
+    "",
+    line(fields["Name"] || "", 60),
+    line(fields["Phone"] || "", 30),
+    requestedDate ? line(requestedDate, 60) : "",
+    "",
+    "https://handymancleanersaz.com/admin",
+  ].filter((s) => s !== null && s !== undefined).join("\n");
 
-  // Anonymous publishes are rate-limited per source IP, and Cloudflare
-  // Workers share egress IPs with thousands of other tenants - the shared
-  // pool is permanently exhausted at ntfy.sh, so unauthenticated pushes get
-  // 429 essentially every time. An account access token (NTFY_TOKEN secret)
-  // bills against the account instead of the IP and bypasses that entirely.
-  const headers = {
-    "Title": title,
-    "Priority": "high",
-    "Tags": "house",
-    "Click": "https://handymancleanersaz.com/admin",
-  };
-  if (env.NTFY_TOKEN) headers["Authorization"] = "Bearer " + env.NTFY_TOKEN;
-
-  const res = await fetch("https://ntfy.sh/" + encodeURIComponent(topic), {
+  const res = await fetch("https://api.telegram.org/bot" + token + "/sendMessage", {
     method: "POST",
-    headers,
-    body: body || "New request",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      chat_id: chatId,
+      text,
+      disable_web_page_preview: true,
+    }),
   });
 
   // fetch() only rejects on network failure, so a 4xx/5xx would otherwise pass
-  // silently and we'd believe alerts were working when they were not. That is
-  // the same mistake the vtext gateway hid behind - do not remove this.
+  // silently and we would believe alerts worked when they did not - the exact
+  // mistake both the vtext gateway and ntfy hid behind. Telegram's error body
+  // names the cause (bad token, wrong chat id, bot blocked), so include it.
   if (!res.ok) {
-    // Include ntfy's own error body: it names the specific limit that was
-    // hit, which distinguishes an account-quota problem from IP-based
-    // throttling of Cloudflare's shared egress addresses.
     const detail = await res.text().catch(() => "");
-    throw new Error(
-      "ntfy responded " + res.status + " (auth=" + (env.NTFY_TOKEN ? "yes" : "NO TOKEN") + ") " + detail.slice(0, 200)
-    );
+    throw new Error("telegram responded " + res.status + " " + detail.slice(0, 200));
   }
 }
 
