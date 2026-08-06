@@ -38,6 +38,7 @@ const ALLOWED_FIELDS = new Set([
   "Address",
   "Message",
   "How did you hear about us",
+  "Google click ID",
   "Acknowledgment",
 ]);
 

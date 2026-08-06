@@ -87,6 +87,10 @@
             </div>
 
             <form id="service-form" action="/api/request" method="post">
+              <!-- Set from localStorage on load; records which Google ad click,
+                   if any, produced this booking. Empty for organic visits. -->
+              <input name="Google click ID" type="hidden">
+
               <!-- Honeypot: humans never see or fill this; bots do. -->
               <label class="hp-wrap" aria-hidden="true">
                 Website
@@ -422,6 +426,15 @@
             }));
             return;
           }
+          // Stamp the stored Google Ads click id, if this visitor arrived from
+          // an ad. Done here rather than on load because site.js (which
+          // defines hcClickId) is deferred and has not executed while this
+          // inline script is parsed - by submit time it always has.
+          var clickIdField = form.elements["Google click ID"];
+          if (clickIdField && typeof window.hcClickId === "function") {
+            clickIdField.value = window.hcClickId();
+          }
+
           var data = collectFields();
 
           submitBtn.disabled = true;

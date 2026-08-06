@@ -16,6 +16,44 @@
     });
   }
 
+  // Google Ads click attribution.
+  //
+  // When someone arrives from a Google ad the URL carries a click id (gclid,
+  // or wbraid/gbraid on iOS). Stash it so that if they submit the request
+  // form - possibly several pages and days later - the booking records which
+  // ad click produced it. That is the ground truth for whether ad spend is
+  // working, independent of any tag Google does or does not manage to fire.
+  //
+  // localStorage, not a cookie, on purpose: the privacy policy promises this
+  // site sets no cookies and shows no cookie banner. Ninety days matches
+  // Google's default attribution window; older ids are treated as expired.
+  (function () {
+    var KEY = "hc_gclid";
+    var MAX_AGE_MS = 90 * 864e5;
+
+    try {
+      var q = new URLSearchParams(location.search);
+      var id = q.get("gclid") || q.get("wbraid") || q.get("gbraid");
+      if (id) {
+        window.localStorage.setItem(KEY, JSON.stringify({ v: id.slice(0, 200), t: Date.now() }));
+      }
+    } catch (e) { /* private mode or no storage - attribution is best-effort */ }
+
+    // Read back the stored click id, or "" when absent/expired/unreadable.
+    window.hcClickId = function () {
+      try {
+        var raw = window.localStorage.getItem(KEY);
+        if (!raw) return "";
+        var o = JSON.parse(raw);
+        if (!o || !o.v || !o.t) return "";
+        if (Date.now() - o.t > MAX_AGE_MS) return "";
+        return o.v;
+      } catch (e) {
+        return "";
+      }
+    };
+  })();
+
   // Legacy anchors from the old single-page site -> their new homes.
   if (location.pathname === "/") {
     var moved = {
