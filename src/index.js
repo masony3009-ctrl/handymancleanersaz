@@ -320,42 +320,77 @@ async function readBoundedText(request) {
 // Kept deliberately terse - the notification is a nudge to act, not the
 // record. Full detail lives in the email and the admin dashboard.
 async function sendPushAlert(env, fields, serviceType, requestedDate) {
-  const token = env.TELEGRAM_BOT_TOKEN;
-  const chatId = env.TELEGRAM_CHAT_ID;
-  if (!token || !chatId) return; // not configured - stay quiet rather than throw
-
   const line = (v, max) => singleLine(v, max).trim();
+  const title = "New " + (SERVICE_SHORT.get(serviceType) || "Request") + " request";
 
   // Plain text on purpose. Telegram's Markdown and HTML parse modes require
   // escaping, and these values are customer-supplied - a name containing an
   // underscore or angle bracket would break the message or worse.
-  const text = [
-    "New " + (SERVICE_SHORT.get(serviceType) || "Request") + " request",
-    "",
+  const body = [
     line(fields["Name"] || "", 60),
     line(fields["Phone"] || "", 30),
     requestedDate ? line(requestedDate, 60) : "",
-    "",
-    "https://handymancleanersaz.com/admin",
-  ].filter((s) => s !== null && s !== undefined).join("\n");
+  ].filter(Boolean).join("\n");
 
-  const res = await fetch("https://api.telegram.org/bot" + token + "/sendMessage", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      chat_id: chatId,
-      text,
-      disable_web_page_preview: true,
-    }),
-  });
+  // Try EVERY configured channel and succeed if any one delivers. Each
+  // provider has failed differently: Telegram is reliable but requires a bot
+  // to have been created; ntfy needs no setup but its free tier meters by
+  // source IP, which Cloudflare Workers share with thousands of tenants, so it
+  // lands only on some days. Sometimes beats never, and the redundancy costs
+  // one extra fetch on a path that already talks to the network.
+  const failures = [];
+  let delivered = false;
 
-  // fetch() only rejects on network failure, so a 4xx/5xx would otherwise pass
-  // silently and we would believe alerts worked when they did not - the exact
-  // mistake both the vtext gateway and ntfy hid behind. Telegram's error body
-  // names the cause (bad token, wrong chat id, bot blocked), so include it.
-  if (!res.ok) {
-    const detail = await res.text().catch(() => "");
-    throw new Error("telegram responded " + res.status + " " + detail.slice(0, 200));
+  if (env.TELEGRAM_BOT_TOKEN && env.TELEGRAM_CHAT_ID) {
+    try {
+      const res = await fetch("https://api.telegram.org/bot" + env.TELEGRAM_BOT_TOKEN + "/sendMessage", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          chat_id: env.TELEGRAM_CHAT_ID,
+          text: title + "\n\n" + body + "\n\nhttps://handymancleanersaz.com/admin",
+          disable_web_page_preview: true,
+        }),
+      });
+      if (res.ok) delivered = true;
+      else failures.push("telegram " + res.status + " " + (await res.text().catch(() => "")).slice(0, 120));
+    } catch (err) {
+      failures.push("telegram threw: " + (err && err.message));
+    }
+  }
+
+  if (env.NTFY_TOPIC) {
+    try {
+      // ntfy carries the title in an HTTP header, so it must be header-safe.
+      const headers = {
+        Title: title.replace(/[^\x20-\x7E]/g, " "),
+        Priority: "high",
+        Tags: "house",
+        Click: "https://handymancleanersaz.com/admin",
+      };
+      if (env.NTFY_TOKEN) headers.Authorization = "Bearer " + env.NTFY_TOKEN;
+      const res = await fetch("https://ntfy.sh/" + encodeURIComponent(env.NTFY_TOPIC), {
+        method: "POST",
+        headers,
+        body: body || "New request",
+      });
+      if (res.ok) delivered = true;
+      else failures.push("ntfy " + res.status + " " + (await res.text().catch(() => "")).slice(0, 120));
+    } catch (err) {
+      failures.push("ntfy threw: " + (err && err.message));
+    }
+  }
+
+  // Never fail silently again. The previous version returned early whenever no
+  // channel was configured, so this site took real bookings for weeks with no
+  // alert and no log line explaining why. An unconfigured notifier IS the
+  // emergency - say so loudly, in the same place a delivery failure lands.
+  if (!delivered) {
+    throw new Error(
+      failures.length
+        ? "every push channel failed: " + failures.join(" | ")
+        : "no push channel configured (set TELEGRAM_BOT_TOKEN + TELEGRAM_CHAT_ID, or NTFY_TOPIC)"
+    );
   }
 }
 
