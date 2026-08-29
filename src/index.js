@@ -49,6 +49,8 @@ const SERVICE_TYPES = new Map([
   ["Recurring cleaning for Airbnb hosts / calendar sync", "Recurring cleaning for Airbnb hosts / calendar sync"],
   ["handyman", "Handyman / repairs & installs"],
   ["Handyman / repairs & installs", "Handyman / repairs & installs"],
+  ["housecleaning", "House or move-out cleaning (residential)"],
+  ["House or move-out cleaning (residential)", "House or move-out cleaning (residential)"],
   ["other", "Something else / not sure"],
   ["Something else / not sure", "Something else / not sure"],
 ]);
@@ -59,6 +61,7 @@ const SERVICE_SHORT = new Map([
   ["Turnover cleaning for an Airbnb property (one-time)", "Turnover"],
   ["Recurring cleaning for Airbnb hosts / calendar sync", "Recurring"],
   ["Handyman / repairs & installs", "Handyman"],
+  ["House or move-out cleaning (residential)", "House Clean"],
   ["Something else / not sure", "Request"],
 ]);
 

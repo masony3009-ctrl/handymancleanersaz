@@ -4,13 +4,13 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="robots" content="max-image-preview:large">
-    <meta name="description" content="Request vacation rental turnover cleaning, recurring calendar-sync service, or a handyman visit in Queen Creek, San Tan Valley, and Gilbert, AZ.">
+    <meta name="description" content="Request house or move-out cleaning, vacation rental turnovers, recurring service, or a handyman visit in Queen Creek, San Tan Valley, and Gilbert, AZ.">
     <title>Request Service or a Free Quote | HandymanCleaners AZ</title>
     <link rel="canonical" href="https://handymancleanersaz.com/request-service/">
     <meta property="og:type" content="website">
     <meta property="og:site_name" content="HandymanCleaners">
     <meta property="og:title" content="Request Service or a Free Quote | HandymanCleaners AZ">
-    <meta property="og:description" content="Request vacation rental turnover cleaning, recurring calendar-sync service, or a handyman visit in one quick form.">
+    <meta property="og:description" content="Request house or move-out cleaning, vacation rental turnovers, recurring service, or a handyman visit in one quick form.">
     <meta property="og:url" content="https://handymancleanersaz.com/request-service/">
     <meta property="og:image" content="https://handymancleanersaz.com/assets/property/own-bedroom.jpg">
     <meta name="twitter:card" content="summary_large_image">
@@ -146,6 +146,11 @@
                     <span class="svc-tx"><strong>Handyman</strong><small>Installs, repairs &amp; upkeep</small></span>
                   </label>
                   <label class="svc-option">
+                    <input type="radio" name="Service type" value="housecleaning" data-label="House or move-out cleaning (residential)">
+                    <span class="svc-ic" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V21h14V9.5"/><path d="M9 21v-6h6v6"/></svg></span>
+                    <span class="svc-tx"><strong>House / move-out clean</strong><small>Residential cleaning for your own home</small></span>
+                  </label>
+                  <label class="svc-option wide">
                     <input type="radio" name="Service type" value="other" data-label="Something else / not sure">
                     <span class="svc-ic" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></span>
                     <span class="svc-tx"><strong>Something else</strong><small>Not sure? Tell us what you need</small></span>
@@ -260,6 +265,31 @@
               </fieldset>
 
               <!-- Other -->
+              <fieldset class="svc-fields" data-service="housecleaning">
+                <legend>About your home</legend>
+                <label class="full">
+                  Home address
+                  <input name="Property address" type="text" autocomplete="street-address" maxlength="300" placeholder="Street address and city (no access codes)">
+                </label>
+                <label>
+                  Preferred date
+                  <input name="Cleaning date" type="text" data-picker="date" data-req readonly placeholder="Select a date" autocomplete="off">
+                  <input name="Cleaning date ISO" type="hidden" data-picker-iso>
+                </label>
+                <label>
+                  Bedrooms
+                  <input name="Bedrooms" type="number" min="0" step="1" placeholder="3">
+                </label>
+                <label>
+                  Bathrooms
+                  <input name="Bathrooms" type="number" min="0" step="0.5" placeholder="2">
+                </label>
+                <label class="full">
+                  What kind of clean?
+                  <textarea name="Checklist or notes" rows="4" maxlength="2000" placeholder="Move-out, deep clean, or regular cleaning? Anything we should know - pets, focus areas, timing."></textarea>
+                </label>
+              </fieldset>
+
               <fieldset class="svc-fields" data-service="other">
                 <legend>Tell us more</legend>
                 <label class="full">
@@ -296,6 +326,7 @@
         </div>
         <div>
           <h3>Services</h3>
+          <a href="/services/house-cleaning/">House &amp; Move-Out Cleaning</a>
           <a href="/services/vacation-rental-turnover-cleaning/">Vacation Rental Turnover Cleaning</a>
           <a href="/services/recurring-vacation-rental-cleaning/">Recurring Vacation Rental Cleaning</a>
           <a href="/services/handyman-property-maintenance/">Handyman &amp; Maintenance</a>
@@ -358,6 +389,14 @@
         form.addEventListener("change", function (e) {
           if (e.target && e.target.name === "Service type") syncFields();
         });
+
+        // Topic pages link here with ?service=<value> so the form opens on
+        // the right fields instead of defaulting to host-turnover questions.
+        var preService = new URLSearchParams(location.search).get("service");
+        if (preService && /^[a-z]+$/.test(preService)) {
+          var preRadio = form.querySelector('[name="Service type"][value="' + preService + '"]');
+          if (preRadio) preRadio.checked = true;
+        }
         // Re-sync after back/forward navigation restores form state (bfcache or re-parse).
         window.addEventListener("pageshow", syncFields);
         syncFields();
@@ -594,7 +633,12 @@
           }
           function pick(d) {
             input.value = pretty(d); input.dataset.iso = iso(d);
-            var isoField = form.elements[input.name + " ISO"];
+            // Scoped to this picker's own label: the form now has two fields
+            // named "Cleaning date ISO" (turnover + house cleaning), and
+            // form.elements[name] returns a collection for duplicates, which
+            // silently no-ops on .value - losing the date for EVERY service.
+            var pickerLabel = input.closest("label");
+            var isoField = pickerLabel && pickerLabel.querySelector("[data-picker-iso]");
             if (isoField) isoField.value = iso(d);
             input.dispatchEvent(new Event("change", { bubbles: true }));
             close(); input.focus();
