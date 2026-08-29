@@ -25,21 +25,41 @@
   // working, independent of any tag Google does or does not manage to fire.
   //
   // localStorage, not a cookie, on purpose: the privacy policy promises this
-  // site sets no cookies and shows no cookie banner. Ninety days matches
-  // Google's default attribution window; older ids are treated as expired.
+  // site sets no cookies and shows no cookie banner. Ninety days is Google's
+  // hard deadline for uploading an offline conversion after the click (the
+  // click-through conversion WINDOW is a separate account setting, 30 days by
+  // default, and must be raised to 90 in the account); older ids are useless
+  // to upload, so treat them as expired.
+  //
+  // gclid, wbraid and gbraid are three DIFFERENT identifiers, and Google's
+  // offline-conversion upload requires exactly one of them in its own column
+  // - a wbraid uploaded in the gclid column is silently rejected. So the kind
+  // is recorded along with the value: gclid values are stored bare, and the
+  // iOS-privacy variants are prefixed ("wbraid:..." / "gbraid:..."), which is
+  // exactly how they land in the booking record for the upload script to
+  // split apart.
   (function () {
     var KEY = "hc_gclid";
     var MAX_AGE_MS = 90 * 864e5;
 
     try {
       var q = new URLSearchParams(location.search);
-      var id = q.get("gclid") || q.get("wbraid") || q.get("gbraid");
-      if (id) {
-        window.localStorage.setItem(KEY, JSON.stringify({ v: id.slice(0, 200), t: Date.now() }));
+      var kinds = ["gclid", "wbraid", "gbraid"];
+      for (var i = 0; i < kinds.length; i++) {
+        var id = q.get(kinds[i]);
+        if (id) {
+          window.localStorage.setItem(KEY, JSON.stringify({
+            v: id.slice(0, 200),
+            k: kinds[i],
+            t: Date.now()
+          }));
+          break;
+        }
       }
     } catch (e) { /* private mode or no storage - attribution is best-effort */ }
 
-    // Read back the stored click id, or "" when absent/expired/unreadable.
+    // Read back the stored click id ("" when absent/expired/unreadable).
+    // Bare value for gclid; "wbraid:..." / "gbraid:..." for the iOS variants.
     window.hcClickId = function () {
       try {
         var raw = window.localStorage.getItem(KEY);
@@ -47,7 +67,7 @@
         var o = JSON.parse(raw);
         if (!o || !o.v || !o.t) return "";
         if (Date.now() - o.t > MAX_AGE_MS) return "";
-        return o.v;
+        return (o.k && o.k !== "gclid" ? o.k + ":" : "") + o.v;
       } catch (e) {
         return "";
       }
