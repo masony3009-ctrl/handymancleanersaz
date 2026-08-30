@@ -844,6 +844,11 @@ footer a,
   text-align: center;
 }
 
+/* Two side-by-side buttons need breathing room when they wrap on mobile. */
+.centered-cta .button {
+  margin: 6px 8px;
+}
+
 /* CTA band */
 
 .cta-band {
