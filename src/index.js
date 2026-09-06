@@ -211,15 +211,28 @@ async function handleRequestForm(request, env) {
 
   const client = await env.DB.prepare(`SELECT id FROM clients WHERE phone = ?1`).bind(phone).first();
 
-  await env.DB.prepare(
+  const inserted = await env.DB.prepare(
     `INSERT INTO requests (client_id, service_type, address, requested_date, details)
      VALUES (?1, ?2, ?3, ?4, ?5)`
   ).bind(client.id, serviceType, address, requestedDate, JSON.stringify(fields)).run();
+  const requestId = inserted && inserted.meta ? inserted.meta.last_row_id : null;
+
+  // Mirror the request into TurnTrack (the crew scheduling app) as a pending
+  // job, so every booking source lands in one schedule. Off the critical
+  // path: the lead is already in D1, and the outcome is reported in the
+  // email and phone alert below so a bridge failure is never silent.
+  let turntrackStatus;
+  try {
+    turntrackStatus = await createTurnTrackJob(env, fields, serviceType, requestedDate, address, requestId);
+  } catch (err) {
+    console.error("turntrack bridge failed (request IS saved in D1):", err && err.message);
+    turntrackStatus = "FAILED to add - add it in the app by hand";
+  }
 
   // Email the submission. If email delivery hiccups, the request is already
   // saved in D1 - report success but log loudly.
   try {
-    await sendNotification(env, fields, serviceType, requestedDate);
+    await sendNotification(env, fields, serviceType, requestedDate, turntrackStatus);
   } catch (err) {
     console.error("email send failed (request IS saved in D1):", err && err.message);
   }
@@ -227,7 +240,7 @@ async function handleRequestForm(request, env) {
   // Separate try/catch on purpose: a failed push must not suppress the email,
   // and neither must fail the submission - the request is already in D1.
   try {
-    await sendPushAlert(env, fields, serviceType, requestedDate);
+    await sendPushAlert(env, fields, serviceType, requestedDate, turntrackStatus);
   } catch (err) {
     console.error("push alert failed (request IS saved in D1):", err && err.message);
   }
@@ -322,7 +335,7 @@ async function readBoundedText(request) {
 //
 // Kept deliberately terse - the notification is a nudge to act, not the
 // record. Full detail lives in the email and the admin dashboard.
-async function sendPushAlert(env, fields, serviceType, requestedDate) {
+async function sendPushAlert(env, fields, serviceType, requestedDate, turntrackStatus) {
   const line = (v, max) => singleLine(v, max).trim();
   const title = "New " + (SERVICE_SHORT.get(serviceType) || "Request") + " request";
 
@@ -333,6 +346,7 @@ async function sendPushAlert(env, fields, serviceType, requestedDate) {
     line(fields["Name"] || "", 60),
     line(fields["Phone"] || "", 30),
     requestedDate ? line(requestedDate, 60) : "",
+    turntrackStatus ? "TurnTrack: " + turntrackStatus : "",
   ].filter(Boolean).join("\n");
 
   // Try EVERY configured channel and succeed if any one delivers. Each
@@ -397,12 +411,13 @@ async function sendPushAlert(env, fields, serviceType, requestedDate) {
   }
 }
 
-async function sendNotification(env, fields, serviceType, requestedDate) {
+async function sendNotification(env, fields, serviceType, requestedDate, turntrackStatus) {
   const lines = [];
   for (const [k, v] of Object.entries(fields)) {
     if (!v || k === "website") continue;
     lines.push(k + ": " + v);
   }
+  if (turntrackStatus) lines.push("TurnTrack: " + turntrackStatus);
   const subjectSafe = ("Service request - " + serviceType + (requestedDate ? " - " + requestedDate : ""))
     .replace(/[^\x20-\x7E]/g, " ")
     .slice(0, 150);
@@ -429,6 +444,86 @@ async function sendNotification(env, fields, serviceType, requestedDate) {
     `\r\n\r\n(Stored in the client database. Reply to the customer's email or call/text their phone above.)\r\n`;
 
   await env.NOTIFY.send(new EmailMessage(FROM, DEST, raw));
+}
+
+// Creates a pending job in TurnTrack (Firestore, via its REST API) so a website
+// booking shows up in the crew app for the owner to confirm. TURNTRACK_JOBS_URL
+// is a Cloudflare secret holding the jobs-collection endpoint: this repository
+// is public and that database is not protected by auth of its own, so its
+// location must never be a literal here.
+const TURNTRACK_NOTES_MAX = 600;
+
+async function createTurnTrackJob(env, fields, serviceType, requestedDate, address, requestId) {
+  if (!env.TURNTRACK_JOBS_URL) {
+    throw new Error("TURNTRACK_JOBS_URL not configured");
+  }
+  const line = (v, max) => singleLine(v || "", max).trim();
+  const isoDate = line(fields["Cleaning date ISO"] || fields["Handyman preferred date ISO"], 20);
+  const date = formatJobDate(isoDate) || line(requestedDate, 60) || "Date to be confirmed";
+
+  const notes = [
+    fields["Bedrooms"] ? line(fields["Bedrooms"], 10) + " bed" : "",
+    fields["Bathrooms"] ? line(fields["Bathrooms"], 10) + " bath" : "",
+    fields["Preferred arrival time"] ? "arrive " + line(fields["Preferred arrival time"], 30) : "",
+    fields["Guest checkout time"] ? "checkout " + line(fields["Guest checkout time"], 30) : "",
+    fields["Next guest check-in time"] ? "next check-in " + line(fields["Next guest check-in time"], 30) : "",
+    fields["Current condition"] ? "condition: " + line(fields["Current condition"], 60) : "",
+    fields["Supplies and linens"] ? "supplies: " + line(fields["Supplies and linens"], 80) : "",
+    fields["Checklist or notes"] ? line(fields["Checklist or notes"], 300) : "",
+    fields["Add-ons or extra requests"] ? "add-ons: " + line(fields["Add-ons or extra requests"], 200) : "",
+    fields["Handyman description"] ? line(fields["Handyman description"], 300) : "",
+    fields["Message"] ? line(fields["Message"], 300) : "",
+  ].filter(Boolean).join(" · ").slice(0, TURNTRACK_NOTES_MAX);
+
+  const str = (v) => ({ stringValue: v });
+  const doc = {
+    fields: {
+      date: str(date),
+      address: str(address || "Address not provided"),
+      type: str("Website · " + (SERVICE_SHORT.get(serviceType) || "Request")),
+      done: { booleanValue: false },
+      completedAt: { nullValue: null },
+      sameDayTurnover: { booleanValue: /^yes/i.test(line(fields["Same-day turnover"], 10)) },
+      assignedTo: { nullValue: null },
+      assignedToName: { nullValue: null },
+      startedAt: { nullValue: null },
+      pending: { booleanValue: true },
+      source: str("website"),
+      requestId: requestId == null ? { nullValue: null } : { integerValue: String(requestId) },
+      contact: {
+        mapValue: {
+          fields: {
+            name: str(line(fields["Name"], 100)),
+            phone: str(line(fields["Phone"], 30)),
+            email: str(line(fields["Email"], 254)),
+          },
+        },
+      },
+      notes: str(notes),
+      createdAt: { integerValue: String(Date.now()) },
+    },
+  };
+
+  const res = await fetch(env.TURNTRACK_JOBS_URL, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(doc),
+  });
+  if (!res.ok) {
+    throw new Error("firestore " + res.status + " " + (await res.text().catch(() => "")).slice(0, 120));
+  }
+  return "added as a pending job - confirm it in the app";
+}
+
+// "2026-05-24" -> "Sat, May 24 2026", the date format TurnTrack's parser reads.
+function formatJobDate(iso) {
+  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(iso);
+  if (!m) return "";
+  const d = new Date(Date.UTC(Number(m[1]), Number(m[2]) - 1, Number(m[3])));
+  if (Number.isNaN(d.getTime())) return "";
+  const days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+  const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+  return days[d.getUTCDay()] + ", " + months[d.getUTCMonth()] + " " + d.getUTCDate() + " " + d.getUTCFullYear();
 }
 
 function clean(v, max = MAX_FIELD) {
