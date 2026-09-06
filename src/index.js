@@ -479,6 +479,11 @@ async function createTurnTrackJob(env, fields, serviceType, requestedDate, addre
   const doc = {
     fields: {
       date: str(date),
+      // The app's canonical "YYYY-MM-DD" key; null lets it fall back to parsing the label.
+      dateKey: formatJobDate(isoDate) ? str(isoDate) : { nullValue: null },
+      cancelled: { booleanValue: false },
+      cancelledAt: { nullValue: null },
+      cancelReason: { nullValue: null },
       address: str(address || "Address not provided"),
       type: str("Website · " + (SERVICE_SHORT.get(serviceType) || "Request")),
       done: { booleanValue: false },
