@@ -5,3 +5,27 @@
   Strict-Transport-Security: max-age=31536000; includeSubDomains
   Permissions-Policy: geolocation=(), microphone=(), camera=()
   Content-Security-Policy: default-src 'self'; img-src 'self' data:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline'; font-src 'self'; connect-src 'self'; form-action 'self'; base-uri 'self'; frame-ancestors 'none'; object-src 'none'
+
+# Caching. Nothing here is content-hashed, so a filename can be reused for new
+# bytes and any max-age is a window where visitors keep the old file. The two
+# groups below are split on how likely that is.
+#
+# HTML deliberately gets no rule: it inherits max-age=0, must-revalidate, which
+# is what makes a deploy show up immediately.
+
+# Photos are effectively immutable in practice - a new or reprocessed image
+# lands under a new name (the "-900" variants, "own-bathroom-3", and so on)
+# rather than overwriting one. Replacing an image in place means visitors who
+# already have it keep the old one for up to a month; rename instead.
+/assets/*
+  Cache-Control: public, max-age=2592000
+
+# These three DO get overwritten on every deploy, so the window is kept short
+# enough that a change is visible in minutes rather than needing a hard reload,
+# while still sparing a round trip on each page of a normal visit.
+/styles.css
+  Cache-Control: public, max-age=300
+/site.js
+  Cache-Control: public, max-age=300
+/analytics.js
+  Cache-Control: public, max-age=300
