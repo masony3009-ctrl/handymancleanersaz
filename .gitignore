@@ -14,3 +14,7 @@ node_modules/
 # OS / editor cruft
 .DS_Store
 Thumbs.db
+
+# Local scratch output — this repo is public, keep working files out of it
+tmp/
+output/

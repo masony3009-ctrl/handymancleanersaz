@@ -1451,6 +1451,14 @@ footer {
   color: var(--teal-dark);
 }
 
+/* A lone pair would sit half-width in the 2-column grid; centre it instead. */
+.ba-grid.single {
+  grid-template-columns: 1fr;
+  max-width: 640px;
+  margin: 0 auto;
+}
+
+
 /* Cross-link cards (related services / areas) */
 .link-grid {
   display: grid;
