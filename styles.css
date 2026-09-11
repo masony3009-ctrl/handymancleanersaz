@@ -287,6 +287,44 @@ footer a,
   margin-top: 10px;
 }
 
+/* Credential pill under the hero buttons. Sits on the hero's dark overlay, so
+   it is painted in white with a translucent fill rather than brand teal. */
+.hero-trust {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  margin: 0;
+  padding: 9px 18px;
+  border: 1px solid rgba(255, 255, 255, 0.45);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.15);
+  color: #ffffff;
+  font-size: 14px;
+  font-weight: 800;
+  letter-spacing: 0.2px;
+}
+
+.hero-trust svg {
+  width: 17px;
+  height: 17px;
+  flex: 0 0 auto;
+}
+
+/* Same pill on a light background, for pages that have no hero image behind it. */
+.hero-trust.on-light {
+  margin: 14px 0 0;
+  border-color: rgba(8, 127, 123, 0.38);
+  background: rgba(10, 165, 160, 0.1);
+  color: #075f5c;
+}
+
+@media (max-width: 430px) {
+  .hero-trust {
+    padding: 8px 14px;
+    font-size: 13px;
+  }
+}
+
 /* Sections */
 
 .section {
