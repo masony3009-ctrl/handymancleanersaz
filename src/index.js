@@ -174,6 +174,39 @@ async function handleRequestForm(request, env) {
     return wantsHtml ? htmlThanks() : json({ ok: true });
   }
 
+  // Throttle per client IP. Every accepted submission writes to D1, calls
+  // TurnTrack, sends an email AND pushes a phone alert, so an unthrottled
+  // endpoint is a way to flood the owner's phone, not merely to spam a table.
+  //
+  // Deliberately checked AFTER the honeypot: a bot that fills it burns no
+  // quota, still gets the same fake success, and so cannot lock out a real
+  // host who happens to share its address behind carrier NAT.
+  //
+  // Five a minute sits far above real use - a host sends one - and low enough
+  // that a script cannot sit on the endpoint. It fails OPEN: if the limiter
+  // itself errors, a booking is worth more than the protection.
+  if (env.REQUEST_LIMITER) {
+    let allowed = true;
+    try {
+      const ip = request.headers.get("CF-Connecting-IP") || "unknown";
+      const verdict = await env.REQUEST_LIMITER.limit({ key: ip });
+      allowed = verdict.success;
+    } catch (err) {
+      console.error("rate limiter errored, failing open:", err && err.message);
+    }
+    if (!allowed) {
+      return json({
+        ok: false,
+        error: "That's several requests in a row from your connection. Give it a minute and try again — or call or text 480-800-7789 and we'll sort it out right now.",
+      }, 429);
+    }
+  } else {
+    // Loud on purpose. A missing notifier once let the live site take real
+    // bookings for eighteen days in silence; a missing limiter is the same
+    // class of invisible failure, so it gets a log line rather than a shrug.
+    console.warn("REQUEST_LIMITER binding missing - /api/request is accepting unlimited submissions");
+  }
+
   // Validate the required contact basics.
   const name = singleLine(fields["Name"], 100);
   const phoneRaw = singleLine(fields["Phone"], 30);
