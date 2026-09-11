@@ -1032,6 +1032,20 @@ textarea {
   font: inherit;
 }
 
+/* iOS Safari zooms the page in whenever a focused field is smaller than 16px,
+   and it does not zoom back out afterwards - on a phone that turns the request
+   form into a pinch-to-escape puzzle after the very first tap. 16px is the
+   threshold, so hold touch devices there and leave the desktop scale at the
+   inherited 15px. Width is included as a fallback for touch devices that do
+   not report a coarse pointer. */
+@media (pointer: coarse), (max-width: 980px) {
+  input,
+  select,
+  textarea {
+    font-size: 16px;
+  }
+}
+
 input:focus,
 select:focus,
 textarea:focus {
@@ -1848,6 +1862,18 @@ button.button[disabled] {
   background: #ffffff;
   font-size: 15px;
   transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+/* The generic 16px touch rule up by the base input styles cannot reach these -
+   the #service-form selectors carry an id, so they win on specificity no matter
+   where they sit. Repeat the override here at matching specificity, otherwise
+   iOS still zooms on every field of the request form. */
+@media (pointer: coarse), (max-width: 980px) {
+  #service-form input:not([type="checkbox"]):not([type="radio"]),
+  #service-form select,
+  #service-form textarea {
+    font-size: 16px;
+  }
 }
 
 #service-form input:not([type="checkbox"]):not([type="radio"]):focus,

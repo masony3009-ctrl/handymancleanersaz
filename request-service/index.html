@@ -105,7 +105,13 @@
                 </label>
                 <label>
                   Phone
-                  <input name="Phone" type="tel" autocomplete="tel" maxlength="30" required>
+                  <!-- pattern mirrors the server rule in src/index.js: 10-15 digits
+                       once non-digits are stripped, so spaces, dashes, dots and
+                       parentheses are all fine. Keep the two in step. -->
+                  <input name="Phone" type="tel" inputmode="tel" autocomplete="tel" maxlength="30"
+                         pattern="(?:\D*\d){10,15}\D*"
+                         title="Enter a phone number with 10 to 15 digits — for example 480-800-7789"
+                         required>
                 </label>
                 <label class="full">
                   Email
