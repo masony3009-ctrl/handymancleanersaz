@@ -486,6 +486,31 @@ async function sendNotification(env, fields, serviceType, requestedDate, turntra
 // location must never be a literal here.
 const TURNTRACK_NOTES_MAX = 600;
 
+// TurnTrack's Firestore rules require an authenticated caller, so the bridge
+// signs in anonymously first. TURNTRACK_WEB_API_KEY is Firebase's public web
+// key - it identifies the project rather than granting anything on its own -
+// but it is kept as a Cloudflare secret alongside the jobs URL so this public
+// repository gives away neither the database's location nor its project.
+async function turnTrackIdToken(env) {
+  if (!env.TURNTRACK_WEB_API_KEY) {
+    throw new Error("TURNTRACK_WEB_API_KEY not configured");
+  }
+  const res = await fetch(
+    "https://identitytoolkit.googleapis.com/v1/accounts:signUp?key=" + env.TURNTRACK_WEB_API_KEY,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ returnSecureToken: true }),
+    }
+  );
+  if (!res.ok) {
+    throw new Error("TurnTrack sign-in failed: " + res.status + " " + (await res.text().catch(() => "")).slice(0, 120));
+  }
+  const body = await res.json();
+  if (!body.idToken) throw new Error("TurnTrack sign-in returned no token");
+  return body.idToken;
+}
+
 async function createTurnTrackJob(env, fields, serviceType, requestedDate, address, requestId) {
   if (!env.TURNTRACK_JOBS_URL) {
     throw new Error("TURNTRACK_JOBS_URL not configured");
@@ -544,7 +569,10 @@ async function createTurnTrackJob(env, fields, serviceType, requestedDate, addre
 
   const res = await fetch(env.TURNTRACK_JOBS_URL, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: "Bearer " + (await turnTrackIdToken(env)),
+    },
     body: JSON.stringify(doc),
   });
   if (!res.ok) {
