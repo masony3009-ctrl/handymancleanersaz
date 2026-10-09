@@ -105,13 +105,18 @@ export async function handleConversionsFeed(request, env) {
     ].join(","));
   }
 
-  // Google's connector infers the column schema from the first data row and
-  // refuses a header-only file. Until an ad click has actually produced a
-  // booking there is no such row, so ?sample=1 appends one placeholder purely
-  // to get the connection mapped. It is setup scaffolding, not data - the
-  // click id is not a real one, so Google rejects the row on import, and the
-  // scheduled pull is configured WITHOUT this parameter.
-  if (new URL(request.url).searchParams.get("sample") === "1") {
+  // Google's connector infers the column schema from the first DATA row and
+  // refuses a header-only file outright ("Failed to determine the data type or
+  // schema of the data source"). This feed is legitimately header-only until an
+  // ad click produces a booking, which would leave the connection impossible to
+  // set up and liable to break again during any later re-validation.
+  //
+  // So when the window holds no real leads, one placeholder row stands in. Its
+  // click id is deliberately not a real one, so Google rejects that single row
+  // on import - a visible, harmless warning that also proves the feed is alive.
+  // It removes itself the moment a genuine ad-sourced lead exists, with nothing
+  // to remember to undo.
+  if (lines.length === 1) {
     const stamp = new Date().toISOString().slice(0, 19).replace("T", " ");
     lines.push(`SAMPLE-SCHEMA-ROW-NOT-A-REAL-CLICK,,,${CONVERSION_NAME},${stamp}+00:00`);
   }
