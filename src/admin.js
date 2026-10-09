@@ -97,7 +97,7 @@ async function sign(msg, key) {
   return btoa(String.fromCharCode(...new Uint8Array(mac))).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
 }
 
-async function constantTimeEqual(a, b) {
+export async function constantTimeEqual(a, b) {
   const da = new Uint8Array(await crypto.subtle.digest("SHA-256", new TextEncoder().encode(String(a))));
   const db = new Uint8Array(await crypto.subtle.digest("SHA-256", new TextEncoder().encode(String(b))));
   let diff = 0;

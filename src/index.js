@@ -4,6 +4,7 @@
 
 import { EmailMessage } from "cloudflare:email";
 import { handleAdmin } from "./admin.js";
+import { handleConversionsFeed } from "./conversions.js";
 
 const DEST = "handymancleanersaz@gmail.com";
 const FROM = "requests@handymancleanersaz.com";
@@ -90,6 +91,26 @@ export default {
 
     if (url.pathname === "/admin" || url.pathname.startsWith("/admin/")) {
       return handleAdmin(request, env);
+    }
+
+    // Google Ads pulls this on a schedule and credits the ad clicks that
+    // turned into leads. Authenticated, and it carries no customer data -
+    // src/conversions.js explains why the site reports conversions this way
+    // round instead of loading a Google tag.
+    if (url.pathname === "/api/conversions.csv") {
+      if (request.method !== "GET" && request.method !== "HEAD") {
+        return json({ ok: false, error: "Method not allowed" }, 405);
+      }
+      try {
+        return await handleConversionsFeed(request, env);
+      } catch (err) {
+        // A feed that fails quietly looks exactly like a feed with no leads.
+        console.error("conversions feed error:", err && err.message);
+        return new Response("Conversion feed error\n", {
+          status: 500,
+          headers: { "Content-Type": "text/plain; charset=utf-8", "Cache-Control": "no-store" },
+        });
+      }
     }
 
     if (url.pathname === "/api/request") {
