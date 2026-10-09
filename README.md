@@ -107,6 +107,16 @@ npx wrangler dev
 
 Create local values for `ADMIN_PASSWORD` and `ADMIN_SESSION_KEY` through Wrangler or an ignored `.dev.vars` file. Never commit those values.
 
+## Tests
+
+Worker tests use Node's built-in test runner (Node 22 or newer) and have no dependencies, so there is nothing to install:
+
+```powershell
+npm test
+```
+
+Tests live next to the code as `src/*.test.js` and stub the D1 binding, so they need no database, Wrangler session, or network. `src/package.json` marks `src/` as ES modules for Node; the root `package.json` only holds the `test` script and does not affect the Cloudflare build, which is driven by `wrangler.jsonc`.
+
 ## Deployment
 
 The production application is deployed as a Cloudflare Worker with a static-assets binding, D1 database binding, and Email Routing binding. The custom domain is `handymancleanersaz.com`.

@@ -1,0 +1,8 @@
+{
+  "name": "handymancleanersaz",
+  "private": true,
+  "description": "Tests for the Cloudflare Worker in src/. The deploy is driven by wrangler.jsonc, not by this file.",
+  "scripts": {
+    "test": "node --test \"src/**/*.test.js\""
+  }
+}
