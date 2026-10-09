@@ -105,6 +105,17 @@ export async function handleConversionsFeed(request, env) {
     ].join(","));
   }
 
+  // Google's connector infers the column schema from the first data row and
+  // refuses a header-only file. Until an ad click has actually produced a
+  // booking there is no such row, so ?sample=1 appends one placeholder purely
+  // to get the connection mapped. It is setup scaffolding, not data - the
+  // click id is not a real one, so Google rejects the row on import, and the
+  // scheduled pull is configured WITHOUT this parameter.
+  if (new URL(request.url).searchParams.get("sample") === "1") {
+    const stamp = new Date().toISOString().slice(0, 19).replace("T", " ");
+    lines.push(`SAMPLE-SCHEMA-ROW-NOT-A-REAL-CLICK,,,${CONVERSION_NAME},${stamp}+00:00`);
+  }
+
   return new Response(lines.join("\r\n") + "\r\n", {
     status: 200,
     headers: { ...headers, "Content-Type": "text/csv; charset=utf-8" },
