@@ -94,7 +94,23 @@
     var DELAY_MS = 12000;
     var REMEMBER_DAYS = 30;
     var PHONE = "4808007789";
-    var MSG = "Hi! I saw your site - I’d like to hear more about a free walkthrough for my rental.";
+
+    // The card follows the page it appears on. A homeowner reading about house
+    // cleaning is not handing over a key to a rental, and rental copy on that
+    // page reads as though we mistook what they came for.
+    var RESIDENTIAL = location.pathname.indexOf("/services/house-cleaning") === 0;
+
+    var COPY = RESIDENTIAL ? {
+      title: "Free Walkthrough, Exact Price",
+      body: "Before anything is booked, meet the two people who will actually be in your home. We walk it with you, then give you one flat price - locked before we start, no charge, no obligation.",
+      msg: "Hi! I saw your site - I’d like a free walkthrough and a flat quote for house cleaning.",
+      label: "Free house cleaning walkthrough offer"
+    } : {
+      title: "Free Walkthrough of Your Rental",
+      body: "Before you hand over a key, meet the two people who’ll be in your property. We’ll walk it with you, learn how you like it set up, and answer anything — no charge, no obligation.",
+      msg: "Hi! I saw your site - I’d like to hear more about a free walkthrough for my rental.",
+      label: "Free walkthrough offer"
+    };
 
     if (location.pathname.indexOf("/request-service") === 0) return;
 
@@ -143,7 +159,7 @@
 
       card = el("aside", "cp-card");
       card.setAttribute("role", "complementary");
-      card.setAttribute("aria-label", "Free walkthrough offer");
+      card.setAttribute("aria-label", COPY.label);
 
       var x = el("button", "cp-close", "×");
       x.type = "button";
@@ -152,13 +168,12 @@
       card.appendChild(x);
 
       card.appendChild(el("p", "cp-kicker", "Let’s Meet First"));
-      card.appendChild(el("h2", null, "Free Walkthrough of Your Rental"));
-      card.appendChild(el("p", null,
-        "Before you hand over a key, meet the two people who’ll be in your property. We’ll walk it with you, learn how you like it set up, and answer anything — no charge, no obligation."));
+      card.appendChild(el("h2", null, COPY.title));
+      card.appendChild(el("p", null, COPY.body));
 
       var actions = el("div", "cp-actions");
       var text = el("a", "button primary", "Text Us to Set It Up");
-      text.href = "sms:" + PHONE + "?&body=" + encodeURIComponent(MSG);
+      text.href = "sms:" + PHONE + "?&body=" + encodeURIComponent(COPY.msg);
       text.addEventListener("click", function () { setTimeout(close, 120); });
       actions.appendChild(text);
 

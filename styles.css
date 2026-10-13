@@ -2739,3 +2739,50 @@ button.button[disabled] {
     animation-duration: 0.01ms;
   }
 }
+
+/* Finished-work photo gallery + per-service blocks (house cleaning page). */
+.photo-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+}
+.photo-grid figure {
+  margin: 0;
+  overflow: hidden;
+  background: #ffffff;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  box-shadow: var(--shadow);
+}
+.photo-grid img {
+  display: block;
+  width: 100%;
+  height: 220px;
+  object-fit: cover;
+}
+.photo-grid figcaption {
+  padding: 10px 14px;
+  color: var(--muted);
+  font-size: 13.5px;
+}
+/* Anchor targets sit below the sticky header and jump bar. */
+.svc-block {
+  scroll-margin-top: 132px;
+}
+.svc-block .price-flag {
+  display: inline-block;
+  margin-bottom: 10px;
+  padding: 5px 13px;
+  border-radius: 999px;
+  background: var(--light);
+  color: var(--teal-dark);
+  font-size: 14px;
+  font-weight: 700;
+}
+@media (max-width: 860px) {
+  .photo-grid { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 560px) {
+  .photo-grid { grid-template-columns: 1fr; }
+  .photo-grid img { height: 240px; }
+}
