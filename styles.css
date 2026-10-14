@@ -132,7 +132,9 @@ footer a,
 .site-header nav {
   display: flex;
   justify-content: center;
-  gap: 28px;
+  /* 22px, not 28: five links (House Cleaning added) must fit the ~556px
+     header slot on one line at 1280px+, as four did before. */
+  gap: 22px;
   font-size: 14px;
   font-weight: 700;
 }
@@ -2786,3 +2788,20 @@ button.button[disabled] {
   .photo-grid { grid-template-columns: 1fr; }
   .photo-grid img { height: 240px; }
 }
+
+/* Request page on phones: the form is the reason the page exists, so it should
+   not start a full screen down. Keep the heading, intro and insurance line on
+   top, then the form, then the contact box and reassurance list underneath.
+   display:contents lets those copy blocks join the grid so they can be
+   reordered without duplicating any markup. */
+@media (max-width: 980px) {
+  .request-copy { display: contents; }
+  .request-grid { row-gap: 12px; }
+  #service-form { order: 1; margin-top: 8px; }
+  .request-copy > .contact-box,
+  .request-copy > .checks { order: 2; }
+}
+
+/* Four service-area cards read as a 2x2 block instead of three plus an orphan. */
+.link-grid.quad { grid-template-columns: repeat(2, 1fr); }
+@media (max-width: 980px) { .link-grid.quad { grid-template-columns: 1fr; } }
