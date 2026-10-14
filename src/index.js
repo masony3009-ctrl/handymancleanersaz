@@ -5,6 +5,7 @@
 import { EmailMessage } from "cloudflare:email";
 import { handleAdmin } from "./admin.js";
 import { handleConversionsFeed } from "./conversions.js";
+import { handleContactTap, ContactTapError } from "./contacts.js";
 
 const DEST = "handymancleanersaz@gmail.com";
 const FROM = "requests@handymancleanersaz.com";
@@ -110,6 +111,22 @@ export default {
           status: 500,
           headers: { "Content-Type": "text/plain; charset=utf-8", "Cache-Control": "no-store" },
         });
+      }
+    }
+
+    // A visitor who arrived on a Google ad tapped Text or Call. site.js beacons
+    // the tap so the lead can be credited to that ad once Mason confirms it -
+    // src/contacts.js explains the flow. Always answers with no body.
+    if (url.pathname === "/api/contact-tap") {
+      if (request.method !== "POST") {
+        return json({ ok: false, error: "Method not allowed" }, 405);
+      }
+      try {
+        return await handleContactTap(request, env);
+      } catch (err) {
+        if (err instanceof ContactTapError) return new Response(null, { status: err.status });
+        console.error("contact-tap error:", err && err.message);
+        return new Response(null, { status: 500 });
       }
     }
 

@@ -39,19 +39,30 @@ beforeEach(() => {
 });
 afterEach(() => mock.restoreAll());
 
-function stubEnv(rows, overrides = {}) {
-  const calls = { sql: null, bound: null };
+// The feed reads two tables: form submissions (requests) and confirmed text/call
+// leads (ad_contacts, see contacts.js). The stub keeps them apart so a test about
+// one query can never be satisfied by the other. contactRows may be an Error,
+// which the contacts query then throws.
+function stubEnv(rows, overrides = {}, contactRows = []) {
+  const calls = { sql: null, bound: null, contactSql: null, contactBound: null };
   const env = {
     CONVERSIONS_FEED_KEY: KEY,
     DB: {
       prepare(sql) {
-        calls.sql = sql;
+        const contacts = /ad_contacts/.test(sql);
+        if (contacts) calls.contactSql = sql;
+        else calls.sql = sql;
         return {
           bind(...args) {
-            calls.bound = args;
+            if (contacts) calls.contactBound = args;
+            else calls.bound = args;
             return this;
           },
-          all: async () => ({ results: rows }),
+          all: async () => {
+            if (!contacts) return { results: rows };
+            if (contactRows instanceof Error) throw contactRows;
+            return { results: contactRows };
+          },
         };
       },
     },
@@ -174,4 +185,53 @@ test("real rows present -> no placeholder", async () => {
   const body = await (await handleConversionsFeed(req(`?key=${KEY}`), stubEnv(ROWS.slice(0, 3)).env)).text();
   assert.doesNotMatch(body, /SAMPLE-SCHEMA-ROW/);
   assert.equal(records(body).length, 4);
+});
+
+// ---------- text / call leads (contacts.js) ----------
+// Visitors from an ad who texted or called, and whom Mason confirmed as a lead
+// in /admin. They join the feed under the same conversion name, timed at the tap.
+
+const CONTACT_ROWS = [
+  { click_id: "Cj0KCQjwTESTtextlead999", tapped_at: "2026-10-12 16:20:00" },
+  { click_id: "wbraid:Cj8TESTcallwbraid1", tapped_at: "2026-10-12 17:45:30" },
+  // A tap timestamp we cannot read honestly is skipped, as with form rows.
+  { click_id: "Cj0KCQjwTESTbadtime", tapped_at: "soon" },
+];
+
+test("confirmed text/call leads appear, each click id kind in its own column", async () => {
+  const body = await (await handleConversionsFeed(req(`?key=${KEY}`), stubEnv([], {}, CONTACT_ROWS).env)).text();
+  assert.deepEqual(records(body), [
+    HEADER,
+    "Cj0KCQjwTESTtextlead999,,,Request Form Submitted,2026-10-12 16:20:00+00:00",
+    ",Cj8TESTcallwbraid1,,Request Form Submitted,2026-10-12 17:45:30+00:00",
+  ]);
+});
+
+test("form rows and text/call leads are both reported", async () => {
+  const body = await (await handleConversionsFeed(req(`?key=${KEY}`), stubEnv(ROWS.slice(0, 1), {}, CONTACT_ROWS.slice(0, 1)).env)).text();
+  assert.equal(records(body).length, 3);
+  assert.match(body, /Cj0KCQjwTESTgclid123_abc-XYZ/);
+  assert.match(body, /Cj0KCQjwTESTtextlead999/);
+});
+
+test("a confirmed text/call lead alone suppresses the placeholder row", async () => {
+  const body = await (await handleConversionsFeed(req(`?key=${KEY}`), stubEnv([], {}, CONTACT_ROWS.slice(0, 1)).env)).text();
+  assert.doesNotMatch(body, /SAMPLE-SCHEMA-ROW/);
+});
+
+test("both queries are bound to the 90-day window, each checked on its own", async () => {
+  const { env, calls } = stubEnv(ROWS.slice(0, 1), {}, []);
+  await handleConversionsFeed(req(`?key=${KEY}`), env);
+  assert.match(calls.sql, /FROM requests/);
+  assert.equal(calls.bound[0], "-90 days");
+  assert.match(calls.contactSql, /FROM ad_contacts/);
+  assert.match(calls.contactSql, /lead_at IS NOT NULL/, "only taps Mason confirmed");
+  assert.equal(calls.contactBound[0], "-90 days");
+});
+
+test("no ad_contacts table yet -> form conversions are still served", async () => {
+  const missing = new Error("D1_ERROR: no such table: ad_contacts: SQLITE_ERROR");
+  const res = await handleConversionsFeed(req(`?key=${KEY}`), stubEnv(ROWS.slice(0, 1), {}, missing).env);
+  assert.equal(res.status, 200);
+  assert.match(await res.text(), /Cj0KCQjwTESTgclid123_abc-XYZ/);
 });

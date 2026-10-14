@@ -74,6 +74,60 @@
     };
   })();
 
+  // Texts and calls from ad visitors (server side: src/contacts.js).
+  //
+  // Many customers text or call instead of using the form, and those leads
+  // could never be credited to the ad that produced them. So when this visitor
+  // arrived on a Google ad, every Text link opens the message with a short
+  // reference ("ref K7Q2M"), and tapping Text or Call tells the server which
+  // ad click it came from. Mason confirms the real leads in /admin, and only
+  // those reach Google. Nothing is sent for visitors who did not come from an
+  // ad, and nothing is sent until they tap - the privacy policy says so.
+  //
+  // The ref MUST be computed exactly as refFor() in src/contacts.js: the
+  // server rejects a ref that does not match the click id it arrives with.
+  (function () {
+    var ALPHABET = "ABCDEFGHJKMNPQRSTUVWXYZ23456789";
+    var LENGTH = 5;
+    var click = window.hcClickId ? window.hcClickId() : "";
+    if (!click || !window.crypto || !window.crypto.subtle || !window.TextEncoder) return;
+    var ref = "";
+
+    window.crypto.subtle.digest("SHA-256", new TextEncoder().encode(click)).then(function (buf) {
+      var bytes = new Uint8Array(buf);
+      for (var i = 0; i < LENGTH; i++) ref += ALPHABET[bytes[i] % ALPHABET.length];
+      tagTextLinks();
+    }).catch(function () { /* attribution is best-effort */ });
+
+    // sms:NUMBER  or  sms:NUMBER?&body=TEXT (the cross-platform form this site uses)
+    function withRef(href) {
+      var m = /^sms:([^?]*)(?:\?&?body=(.*))?$/i.exec(href || "");
+      if (!m || !ref) return href;
+      var body = "";
+      try { body = m[2] != null ? decodeURIComponent(m[2]) : ""; } catch (e) { return href; }
+      if (body.indexOf("ref " + ref) !== -1) return href;
+      body = body ? body + " (ref " + ref + ")" : "Hi! (ref " + ref + ") ";
+      return "sms:" + m[1] + "?&body=" + encodeURIComponent(body);
+    }
+
+    function tagTextLinks() {
+      var links = document.querySelectorAll('a[href^="sms:"]');
+      for (var i = 0; i < links.length; i++) links[i].setAttribute("href", withRef(links[i].getAttribute("href")));
+    }
+
+    // Capture phase, so it runs before the browser follows the link. Links
+    // created after load (the contact card) are tagged here at tap time.
+    document.addEventListener("click", function (e) {
+      var a = e.target && e.target.closest ? e.target.closest('a[href^="sms:"], a[href^="tel:"]') : null;
+      if (!a || !ref) return;
+      var channel = /^sms:/i.test(a.getAttribute("href")) ? "text" : "call";
+      if (channel === "text") a.setAttribute("href", withRef(a.getAttribute("href")));
+      try {
+        navigator.sendBeacon("/api/contact-tap", JSON.stringify({ ref: ref, channel: channel, click: click }));
+      } catch (err) { /* attribution is best-effort */ }
+    }, true);
+  })();
+
   // Legacy anchors from the old single-page site -> their new homes.
   if (location.pathname === "/") {
     var moved = {

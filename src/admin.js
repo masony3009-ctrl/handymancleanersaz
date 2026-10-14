@@ -2,6 +2,8 @@
 // Auth: password (ADMIN_PASSWORD secret) -> HMAC-signed session cookie
 // (ADMIN_SESSION_KEY secret). No third-party services.
 
+import { listContactTaps, setContactLead } from "./contacts.js";
+
 const COOKIE = "hc_admin";
 const SESSION_HOURS = 24;
 const MAX_ADMIN_BODY_BYTES = 16 * 1024;
@@ -56,6 +58,9 @@ export async function handleAdmin(request, env) {
   }
   if (path === "/admin/api/client-note" && request.method === "POST") {
     return noteEndpoint(request, env, headers);
+  }
+  if (path === "/admin/api/contact-lead" && request.method === "POST") {
+    return contactLeadEndpoint(request, env, headers);
   }
   return json({ ok: false, error: "Not found" }, 404, headers);
 }
@@ -134,7 +139,27 @@ async function dataEndpoint(env, headers) {
      FROM clients c LEFT JOIN requests r ON r.client_id = c.id
      GROUP BY c.id ORDER BY c.first_seen DESC LIMIT 300`
   ).all();
-  return json({ ok: true, requests: merged, clients: clients.results }, 200, headers);
+  // Text/Call taps from Google-ad visitors (src/contacts.js). If that table is
+  // unreadable the request queue must still load, so it degrades to empty.
+  let contacts = [];
+  try {
+    contacts = await listContactTaps(env);
+  } catch (err) {
+    console.error("admin: contact taps unavailable:", err && err.message);
+  }
+  return json({ ok: true, requests: merged, clients: clients.results, contacts }, 200, headers);
+}
+
+// Mark a Text/Call tap as a real lead (or undo). Marked taps are reported to
+// Google Ads through /api/conversions.csv.
+async function contactLeadEndpoint(request, env, headers) {
+  const body = await readAdminJson(request).catch(() => ({}));
+  const id = Number(body.id);
+  if (!Number.isInteger(id) || typeof body.lead !== "boolean") {
+    return json({ ok: false, error: "Bad id or lead flag" }, 400, headers);
+  }
+  await setContactLead(env, id, body.lead);
+  return json({ ok: true }, 200, headers);
 }
 
 async function statusEndpoint(request, env, headers) {
@@ -281,6 +306,8 @@ function dashboardPage(nonce) {
   .act:hover{border-color:var(--teal)}
   .hist{display:grid;gap:4px;margin:6px 0 0;padding:0}
   .hist-row{font-size:13px;color:var(--muted)}
+  .hint{color:var(--muted);font-size:13px;margin:0 0 10px;max-width:760px}
+  .lo.is-lead{background:#e3f4f3;border-color:var(--teal);color:var(--teal-dark)}
   </style></head><body>
   <header>
     <h1>HandymanCleaners Admin</h1>
@@ -290,6 +317,9 @@ function dashboardPage(nonce) {
     <input id="q" class="search" type="search" placeholder="Search name, phone, address, or email" autocomplete="off">
     <h2>Upcoming</h2>
     <div id="upcoming"></div>
+    <h2>Texts &amp; Calls From Ads</h2>
+    <p class="hint">People who tapped Text or Call after clicking a Google ad. Match a text by the ref in the message and a call by its time, then mark the real leads. Marked leads are reported to Google Ads so it learns which ads bring customers.</p>
+    <div id="adcontacts"></div>
     <h2>Requests</h2>
     <div class="chips" id="chips"></div>
     <div id="requests"></div>
@@ -506,7 +536,50 @@ function dashboardPage(nonce) {
     });
   }
 
-  function render() { renderUpcoming(); renderChips(); renderRequests(); renderClients(); }
+  function azTime(s) {
+    var d = new Date(String(s || "").replace(" ", "T") + "Z");
+    if (isNaN(d.getTime())) return s || "";
+    return d.toLocaleString("en-US", { timeZone: "America/Phoenix", weekday: "short", month: "short", day: "numeric", hour: "numeric", minute: "2-digit" });
+  }
+
+  function renderAdContacts() {
+    var box = document.getElementById("adcontacts");
+    box.replaceChildren();
+    var rows = state.data.contacts || [];
+    if (!rows.length) {
+      box.appendChild(el("div", "empty", "No texts or calls from ad clicks yet. When someone who came from a Google ad taps Text or Call, it shows up here."));
+      return;
+    }
+    rows.forEach(function (c) {
+      var card = el("div", "card");
+      var row1 = el("div", "row1");
+      var who = el("div", "who");
+      who.appendChild(el("span", null, (c.channel === "text" ? "Text" : "Call") + " — " + azTime(c.tapped_at) + " (Arizona time)"));
+      row1.appendChild(who);
+      var btn = el("button", "lo" + (c.lead_at ? " is-lead" : ""), c.lead_at ? "Lead ✓ (undo)" : "Became a lead");
+      btn.type = "button";
+      btn.onclick = function () {
+        var next = !c.lead_at;
+        btn.disabled = true;
+        fetch("/admin/api/contact-lead", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id: c.id, lead: next }) })
+          .then(function (res) {
+            btn.disabled = false;
+            if (!res.ok) { alert("Didn't save - try again"); return; }
+            c.lead_at = next ? "marked" : null;
+            renderAdContacts();
+          })
+          .catch(function () { btn.disabled = false; alert("Didn't save - check your connection and try again"); });
+      };
+      row1.appendChild(btn);
+      card.appendChild(row1);
+      card.appendChild(el("div", "meta", c.channel === "text"
+        ? "Look for “ref " + c.ref + "” in the text message."
+        : "No ref on a call — match it by the time it came in."));
+      box.appendChild(card);
+    });
+  }
+
+  function render() { renderUpcoming(); renderAdContacts(); renderChips(); renderRequests(); renderClients(); }
 
   document.getElementById("q").oninput = function () {
     state.q = this.value.trim().toLowerCase();

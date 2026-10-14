@@ -24,6 +24,7 @@
 // this repository - it is public.
 
 import { constantTimeEqual } from "./admin.js";
+import { contactLeadsForFeed } from "./contacts.js";
 
 // Must match the conversion action name in Google Ads exactly, or every row
 // is rejected as an unknown conversion.
@@ -102,6 +103,21 @@ export async function handleConversionsFeed(request, env) {
       csv(click.kind === "gbraid" ? click.value : ""),
       csv(CONVERSION_NAME),
       csv(`${row.created_at}+00:00`),
+    ].join(","));
+  }
+
+  // Leads that texted or called instead of using the form (see contacts.js).
+  // Only taps Mason confirmed in /admin appear here, timed at the tap.
+  for (const row of await contactLeadsForFeed(env, WINDOW_DAYS, MAX_ROWS)) {
+    if (!SQLITE_UTC.test(String(row.tapped_at))) continue;
+    const click = splitClickId(row.click_id);
+    if (!click) continue;
+    lines.push([
+      csv(click.kind === "gclid" ? click.value : ""),
+      csv(click.kind === "wbraid" ? click.value : ""),
+      csv(click.kind === "gbraid" ? click.value : ""),
+      csv(CONVERSION_NAME),
+      csv(`${row.tapped_at}+00:00`),
     ].join(","));
   }
 
