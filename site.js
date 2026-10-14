@@ -152,7 +152,9 @@
     // The card follows the page it appears on. A homeowner reading about house
     // cleaning is not handing over a key to a rental, and rental copy on that
     // page reads as though we mistook what they came for.
-    var RESIDENTIAL = location.pathname.indexOf("/services/house-cleaning") === 0;
+    // The Mesa page leads with house cleaning too.
+    var RESIDENTIAL = location.pathname.indexOf("/services/house-cleaning") === 0 ||
+      location.pathname.indexOf("/locations/mesa") === 0;
 
     var COPY = RESIDENTIAL ? {
       title: "Free Walkthrough, Exact Price",
