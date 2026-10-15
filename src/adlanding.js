@@ -5,9 +5,11 @@
 // keywords ("house cleaning near me" says nothing about which city), so the
 // keyword cannot pick the page. Google can, though: the campaign's Final URL
 // suffix is "loc={loc_physical_ms}", which Google fills in with the location
-// ID of where the person was when they clicked. This route turns that ID into
-// the matching city page, so a searcher in Gilbert lands on "House Cleaning in
-// Gilbert, AZ" instead of the general page.
+// ID of where the person was when they clicked. The Final URL stays the
+// general page (/services/house-cleaning/); src/index.js sends any request to
+// it that carries loc here, and /house-cleaning/ is a short alias. This turns
+// that ID into the matching city page, so a searcher in Gilbert lands on
+// "House Cleaning in Gilbert, AZ" instead of the general page.
 //
 // The IDs are Google's own geotarget criteria IDs (developers.google.com/
 // google-ads/api/data/geotargets, 2026-10-06 file). Google reports either the

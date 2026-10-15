@@ -51,3 +51,9 @@ test("response: uncached, unindexed 302 to a same-site path", () => {
   assert.equal(res.headers.get("Cache-Control"), "no-store");
   assert.equal(res.headers.get("X-Robots-Tag"), "noindex");
 });
+
+test("arriving on the general page with an unknown loc cannot loop: the hop drops loc", () => {
+  const hop = at("?loc=1013387&gclid=TESTgclid0002");
+  assert.equal(hop, FALLBACK_PAGE + "?gclid=TESTgclid0002");
+  assert.ok(!new URL(hop, BASE).searchParams.has("loc"));
+});

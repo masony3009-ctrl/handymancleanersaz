@@ -131,10 +131,17 @@ export default {
       }
     }
 
-    // Final URL of the residential Google Ads campaign. Google appends the
-    // clicker's location ID and this sends them to their own city's house
-    // cleaning page - src/adlanding.js has the map and the reasoning.
-    if (url.pathname === "/house-cleaning" || url.pathname === "/house-cleaning/") {
+    // Residential Google Ads clicks. The campaign's Final URL is the house
+    // cleaning page and its Final URL suffix adds loc={loc_physical_ms}; a
+    // request carrying that parameter goes to the clicker's own city page
+    // (src/adlanding.js has the map and the reasoning). Without loc the page
+    // is served as normal, and an unknown loc lands back here without it, so
+    // the hop can never loop. /house-cleaning/ is a short alias.
+    if (
+      url.pathname === "/house-cleaning" ||
+      url.pathname === "/house-cleaning/" ||
+      (url.pathname === "/services/house-cleaning/" && url.searchParams.has("loc"))
+    ) {
       return handleAdLanding(request);
     }
 
