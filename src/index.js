@@ -52,7 +52,14 @@ const SERVICE_TYPES = new Map([
   ["Recurring cleaning for Airbnb hosts / calendar sync", "Recurring cleaning for Airbnb hosts / calendar sync"],
   ["handyman", "Handyman / repairs & installs"],
   ["Handyman / repairs & installs", "Handyman / repairs & installs"],
-  ["housecleaning", "House or move-out cleaning (residential)"],
+  ["housecleaning", "House cleaning - routine (residential)"],
+  ["House cleaning - routine (residential)", "House cleaning - routine (residential)"],
+  ["deepclean", "House cleaning - deep clean (residential)"],
+  ["House cleaning - deep clean (residential)", "House cleaning - deep clean (residential)"],
+  ["moveout", "Move-out / move-in cleaning (residential)"],
+  ["Move-out / move-in cleaning (residential)", "Move-out / move-in cleaning (residential)"],
+  // The single residential option the form offered before routine, deep and
+  // move-out were split; kept so an already-open old page can still submit.
   ["House or move-out cleaning (residential)", "House or move-out cleaning (residential)"],
   ["other", "Something else / not sure"],
   ["Something else / not sure", "Something else / not sure"],
@@ -64,6 +71,9 @@ const SERVICE_SHORT = new Map([
   ["Turnover cleaning for an Airbnb property (one-time)", "Turnover"],
   ["Recurring cleaning for Airbnb hosts / calendar sync", "Recurring"],
   ["Handyman / repairs & installs", "Handyman"],
+  ["House cleaning - routine (residential)", "House Clean"],
+  ["House cleaning - deep clean (residential)", "Deep Clean"],
+  ["Move-out / move-in cleaning (residential)", "Move-Out"],
   ["House or move-out cleaning (residential)", "House Clean"],
   ["Something else / not sure", "Request"],
 ]);
