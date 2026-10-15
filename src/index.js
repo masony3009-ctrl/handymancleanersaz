@@ -6,6 +6,7 @@ import { EmailMessage } from "cloudflare:email";
 import { handleAdmin } from "./admin.js";
 import { handleConversionsFeed } from "./conversions.js";
 import { handleContactTap, ContactTapError } from "./contacts.js";
+import { handleAdLanding } from "./adlanding.js";
 
 const DEST = "handymancleanersaz@gmail.com";
 const FROM = "requests@handymancleanersaz.com";
@@ -128,6 +129,13 @@ export default {
         console.error("contact-tap error:", err && err.message);
         return new Response(null, { status: 500 });
       }
+    }
+
+    // Final URL of the residential Google Ads campaign. Google appends the
+    // clicker's location ID and this sends them to their own city's house
+    // cleaning page - src/adlanding.js has the map and the reasoning.
+    if (url.pathname === "/house-cleaning" || url.pathname === "/house-cleaning/") {
+      return handleAdLanding(request);
     }
 
     if (url.pathname === "/api/request") {
