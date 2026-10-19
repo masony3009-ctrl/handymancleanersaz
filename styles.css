@@ -2743,10 +2743,19 @@ button.button[disabled] {
 }
 
 /* Finished-work photo gallery + per-service blocks (house cleaning page). */
+/* Flex, not grid, so a final row that does not fill (8 photos in threes)
+   centres its leftovers instead of hanging beside an empty cell. The 1px
+   shaved off each basis absorbs sub-pixel rounding, which would otherwise
+   wrap the third card onto its own line at some widths. */
 .photo-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
   gap: 16px;
+}
+.photo-grid figure {
+  flex: 0 1 calc((100% - 33px) / 3);
+  min-width: 0;
 }
 .photo-grid figure {
   margin: 0;
@@ -2782,10 +2791,10 @@ button.button[disabled] {
   font-weight: 700;
 }
 @media (max-width: 860px) {
-  .photo-grid { grid-template-columns: repeat(2, 1fr); }
+  .photo-grid figure { flex-basis: calc((100% - 17px) / 2); }
 }
 @media (max-width: 560px) {
-  .photo-grid { grid-template-columns: 1fr; }
+  .photo-grid figure { flex-basis: 100%; }
   .photo-grid img { height: 240px; }
 }
 
