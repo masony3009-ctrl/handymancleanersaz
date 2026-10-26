@@ -2834,5 +2834,5 @@ button.button[disabled] {
 .form-recording-note {
   font-size: 0.85rem;
   color: var(--muted);
-  margin: 0 0 12px;
+  margin: 14px 0 0;
 }
