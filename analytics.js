@@ -3,12 +3,14 @@
 // PRIVACY CONTRACT - the privacy policy makes these promises, keep them true:
 //   * No cookies. Persistence is localStorage only.
 //   * Do Not Track / Global Privacy Control is honored.
-//   * Form instrumentation records FIELD NAMES and completion counts only.
-//     Never a field VALUE. This form collects names, phone numbers, emails
-//     and street addresses - none of it may reach analytics.
-//   * Session replay is ENABLED, with every typed value masked in the
-//     browser before the recording is sent. If you ever turn masking down,
-//     the privacy policy has to change with it - it promises masking by name.
+//   * Form EVENTS (form_start, form_abandon, ...) record FIELD NAMES and
+//     completion counts only - never put a field VALUE in an event property.
+//     (Session replay is the one place typed values appear; see below.)
+//   * Session replay is ENABLED and, since Oct 26 2026 (owner's decision),
+//     typed values are NOT masked: recordings show what visitors type into
+//     the request form, even if they never send it. The privacy policy says
+//     so in its "Session replay" section. If you change masking again, change
+//     that section in the same deploy.
 (function () {
   // Public project key (phc_...). Safe in client code by design - it can only
   // write events, not read them. Paste yours from PostHog:
@@ -34,8 +36,7 @@
       autocapture: true,                // pageviews + clicks: "where are they going"
       capture_pageview: true,
       respect_dnt: true,
-      // Session replay is ON. Every value a visitor types is masked before
-      // the recording leaves their browser - we watch behaviour, not data.
+      // Session replay is ON, with typed values visible (see header note).
       disable_session_recording: false,
       // The project has console-log capture switched on; we don't want it.
       // Nothing client-side logs anything useful (all console calls live in
@@ -43,12 +44,9 @@
       // scrolling and clicks - console output is not in that description.
       enable_recording_console_log: false,
       session_recording: {
-        maskAllInputs: true,
-        maskInputOptions: {
-          text: true, textarea: true, email: true, tel: true,
-          number: true, search: true, url: true, password: true,
-          date: true, select: true
-        },
+        maskAllInputs: false,
+        // Passwords stay masked (the public site has none, but never record one).
+        maskInputOptions: { password: true },
         // Belt-and-braces: anything explicitly marked sensitive is blanked.
         maskTextSelector: ".ph-no-capture"
       }

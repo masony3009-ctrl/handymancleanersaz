@@ -2829,3 +2829,10 @@ button.button[disabled] {
   margin: 0 -24px 14px;
   object-fit: cover;
 }
+
+/* Session-replay notice at the top of the request form (privacy policy: Session replay). */
+.form-recording-note {
+  font-size: 0.85rem;
+  color: var(--muted);
+  margin: 0 0 12px;
+}
