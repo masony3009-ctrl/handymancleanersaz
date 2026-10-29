@@ -138,52 +138,118 @@
     if (dest) location.replace(dest);
   }
 
-  // Contact card: after a short delay, a small corner card invites the visitor
-  // to text us about a free walkthrough. Non-blocking by design - no overlay,
-  // no scroll lock, the page stays fully usable. Shown once per visitor
-  // (remembered 30 days); never on the request page, where they are already
-  // filling out the form.
+  // Contact card: after a short delay, a small corner card asks a few quick
+  // questions and turns the answers into a ready-to-send price text.
+  // Non-blocking by design - no overlay, no scroll lock, the page stays fully
+  // usable. Shown once per visitor (remembered 30 days); never on the request
+  // page, where they are already filling out the form.
+  //
+  // It replaced a free-walkthrough invite that was shown 213 times in
+  // Sept-Oct 2026 and texted 0. A text that arrives already written, with a
+  // question we can answer in one reply, is the whole point.
   (function () {
     var KEY = "hc_cp_seen";
     var DELAY_MS = 12000;
     var REMEMBER_DAYS = 30;
     var PHONE = "4808007789";
-
-    // The card follows the page it appears on. A homeowner reading about house
-    // cleaning is not handing over a key to a rental, and rental copy on that
-    // page reads as though we mistook what they came for.
-    // So do the per-city house cleaning pages, and the Mesa page (which leads
-    // with house cleaning; Mesa's Airbnb page is /locations/mesa/airbnb-cleaning/).
-    var RESIDENTIAL = /^\/services\/house-cleaning|^\/locations\/[^\/]+\/house-cleaning\/|^\/locations\/mesa\/?$/
-      .test(location.pathname);
-
-    // Hosts get a quick-price card instead of the walkthrough invite: the
-    // walkthrough version was shown 213 times in Sept-Oct 2026 and texted 0.
-    // Asking the host's size and city lets the text arrive already written,
-    // with a question we can answer in one reply.
-    var COPY = RESIDENTIAL ? {
-      kicker: "Let’s Meet First",
-      title: "Free Walkthrough, Exact Price",
-      body: "Before anything is booked, meet the two people who will actually be in your home. We walk it with you, then give you one flat price - locked before we start, no charge, no obligation.",
-      cta: "Text Us to Set It Up",
-      msg: "Hi! I saw your site - I’d like a free walkthrough and a flat quote for house cleaning.",
-      label: "Free house cleaning walkthrough offer"
-    } : {
-      kicker: "Quick Price",
-      title: "What’s Your Turnover Rate?",
-      body: "Pick your rental’s size and city and we’ll text back your exact flat rate within 30 minutes (9 AM–9 PM).",
-      cta: "Text Me My Price",
-      quote: true,
-      label: "Turnover price check"
-    };
+    var path = location.pathname;
 
     var CITIES = ["San Tan Valley", "Queen Creek", "Gilbert", "Mesa", "Somewhere else"];
+    var BEDS = ["1", "2", "3", "4", "5+"];
+    var BATHS = ["1", "1.5", "2", "2.5", "3", "3.5", "4+"];
 
-    function quoteMsg(beds, baths, city) {
-      var size = [beds && beds + " bed", baths && baths + " bath"].filter(Boolean).join(" / ");
-      var where = city && city !== "Somewhere else" ? " in " + city : "";
-      return "Hi! What would a turnover cost for my " + (size ? size + " " : "") + "rental" + where + "?";
+    function size(v) {
+      var s = [v.beds && v.beds + " bed", v.baths && v.baths + " bath"].filter(Boolean).join(" / ");
+      return s ? s + " " : "";
     }
+
+    function where(v) {
+      return v.city && v.city !== "Somewhere else" ? " in " + v.city : "";
+    }
+
+    // Options are [value, label] when the text needs different wording than
+    // the dropdown shows.
+    var HOME_KINDS = [
+      ["cleaning every 2 weeks", "Every 2 weeks"],
+      ["weekly cleaning", "Weekly"],
+      ["monthly cleaning", "Monthly"],
+      ["a one-time deep clean", "One-time deep clean"],
+      ["a move-out clean", "Move-out clean"]
+    ];
+
+    function turnover(noun) {
+      return {
+        kicker: "Quick Price",
+        title: "What’s Your Turnover Rate?",
+        body: "Pick your rental’s size and city and we’ll text back your exact flat rate within 30 minutes (9 AM–9 PM).",
+        label: "Turnover price check",
+        fields: [["beds", "Beds", BEDS], ["baths", "Baths", BATHS], ["city", "City", CITIES]],
+        msg: function (v) {
+          return "Hi! What would a turnover cost for my " + size(v) + noun + where(v) + "?";
+        }
+      };
+    }
+
+    var HOME = {
+      kicker: "Quick Price",
+      title: "What Would Your Home Cost?",
+      body: "Pick the clean and your home’s size. We’ll text back a price within 30 minutes (9 AM–9 PM), then lock the exact rate at a free walkthrough.",
+      label: "House cleaning price check",
+      fields: [["kind", "Type of clean", HOME_KINDS, true], ["beds", "Beds", BEDS], ["baths", "Baths", BATHS], ["city", "City", CITIES]],
+      msg: function (v) {
+        return "Hi! What would " + (v.kind || "a house cleaning") + " cost for my " + size(v) + "home" + where(v) + "?";
+      }
+    };
+
+    var HANDYMAN = {
+      kicker: "Quick Price",
+      title: "What Needs Doing?",
+      body: "Pick the job and city and we’ll text back a price within 30 minutes (9 AM–9 PM). $100 first hour, $80/hr after. Not a licensed contractor.",
+      label: "Handyman price check",
+      fields: [["job", "Pick the job", [
+        ["a TV wall mount", "TV wall mount"],
+        ["a ceiling fan install", "Ceiling fan install"],
+        ["a light fixture swap", "Light fixture swap"],
+        ["a faucet replacement", "Faucet replacement"],
+        ["a small drywall patch", "Small drywall patch"],
+        ["a door repair", "Door repair"],
+        ["some furniture or BBQ assembly", "Assembly"],
+        ["a handyman job", "Something else"]
+      ], true], ["city", "City", CITIES, true]],
+      msg: function (v) {
+        return "Hi! What would " + (v.job || "a handyman job") + " cost" + where(v) + "?";
+      }
+    };
+
+    // Pages with no single service (about, legal, 404) ask which one first.
+    var ANY = {
+      kicker: "Quick Price",
+      title: "Get a Price by Text",
+      body: "Pick what you need and your home’s size. We’ll text back a price within 30 minutes (9 AM–9 PM).",
+      label: "Cleaning price check",
+      fields: [["svc", "What do you need?", [
+        ["turnover", "Airbnb / Vrbo turnover"],
+        ["a house cleaning", "House cleaning"],
+        ["a move-out clean", "Move-out clean"]
+      ], true], ["beds", "Beds", BEDS], ["baths", "Baths", BATHS], ["city", "City", CITIES]],
+      msg: function (v) {
+        if (v.svc === "turnover") return turnover("rental").msg(v);
+        return "Hi! What would " + (v.svc || "a cleaning") + " cost for my " + size(v) + "home" + where(v) + "?";
+      }
+    };
+
+    // The card follows the page it appears on: a homeowner reading about house
+    // cleaning is not handing over a key to a rental, and rental copy there
+    // reads as though we mistook what they came for. The Mesa page leads with
+    // house cleaning; Mesa's Airbnb page is /locations/mesa/airbnb-cleaning/.
+    // The homepage and the other city pages lead with Airbnb turnovers.
+    var COPY =
+      /^\/services\/house-cleaning|^\/locations\/[^\/]+\/house-cleaning\/|^\/locations\/mesa\/?$/.test(path) ? HOME :
+      /^\/services\/handyman/.test(path) ? HANDYMAN :
+      /^\/services\/airbnb/.test(path) ? turnover("Airbnb") :
+      /^\/services\/vrbo/.test(path) ? turnover("Vrbo") :
+      /^\/(services|locations)\//.test(path) || path === "/" ? turnover("rental") :
+      ANY;
 
     if (location.pathname.indexOf("/request-service") === 0) return;
 
@@ -245,33 +311,33 @@
       card.appendChild(el("p", null, COPY.body));
 
       var actions = el("div", "cp-actions");
-      var text = el("a", "button primary", COPY.cta);
-      text.href = "sms:" + PHONE + "?&body=" + encodeURIComponent(COPY.msg || quoteMsg());
+      var text = el("a", "button primary", "Text Me My Price");
+      var pick = {};
+
+      function update() {
+        var v = {};
+        Object.keys(pick).forEach(function (k) { v[k] = pick[k].value; });
+        text.href = "sms:" + PHONE + "?&body=" + encodeURIComponent(COPY.msg(v));
+        // Which answers were given, never what they were.
+        text.setAttribute("data-filled", Object.keys(v).filter(function (k) { return v[k]; }).join(","));
+      }
+
       text.addEventListener("click", function () { setTimeout(close, 120); });
 
-      if (COPY.quote) {
-        var fields = el("div", "cp-fields");
-        var pick = {};
-        [["beds", "Beds", ["1", "2", "3", "4", "5+"]],
-         ["baths", "Baths", ["1", "1.5", "2", "2.5", "3", "3.5", "4+"]],
-         ["city", "City", CITIES]].forEach(function (f) {
-          var sel = el("select");
-          sel.setAttribute("aria-label", f[1]);
-          sel.appendChild(new Option(f[1], ""));
-          f[2].forEach(function (v) { sel.appendChild(new Option(v, v)); });
-          sel.addEventListener("change", function () {
-            text.href = "sms:" + PHONE + "?&body=" +
-              encodeURIComponent(quoteMsg(pick.beds.value, pick.baths.value, pick.city.value));
-            // Which answers were given, never what they were.
-            text.setAttribute("data-filled", ["beds", "baths", "city"].filter(function (k) {
-              return pick[k].value;
-            }).join(","));
-          });
-          pick[f[0]] = sel;
-          fields.appendChild(sel);
+      var fields = el("div", "cp-fields");
+      COPY.fields.forEach(function (f) {
+        var sel = el("select", f[3] ? "cp-wide" : null);
+        sel.setAttribute("aria-label", f[1]);
+        sel.appendChild(new Option(f[1], ""));
+        f[2].forEach(function (o) {
+          sel.appendChild(typeof o === "string" ? new Option(o, o) : new Option(o[1], o[0]));
         });
-        card.appendChild(fields);
-      }
+        sel.addEventListener("change", update);
+        pick[f[0]] = sel;
+        fields.appendChild(sel);
+      });
+      card.appendChild(fields);
+      update();
 
       actions.appendChild(text);
 

@@ -2838,6 +2838,10 @@ button.button[disabled] {
   margin: -4px 0 12px;
 }
 
+.cp-fields .cp-wide {
+  grid-column: 1 / -1;
+}
+
 .cp-fields select {
   padding: 9px 6px;
   border-radius: 8px;
