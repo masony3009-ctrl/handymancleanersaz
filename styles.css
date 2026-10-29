@@ -411,6 +411,65 @@ footer a,
   object-position: 50% 30%;
 }
 
+/* "Meet Mason & his dad" band, right under the hero on ad landing pages, so
+   a visitor sees who shows up before scrolling into the details. */
+.meet-band {
+  padding: clamp(28px, 4vw, 44px) 0;
+  background: var(--light);
+  border-bottom: 1px solid var(--line);
+}
+
+.meet-inner {
+  display: grid;
+  grid-template-columns: 260px 1fr;
+  gap: clamp(20px, 4vw, 40px);
+  align-items: center;
+  max-width: 860px;
+}
+
+.meet-photo {
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  height: auto;
+  object-fit: cover;
+  border-radius: 12px;
+  box-shadow: var(--shadow);
+}
+
+.meet-copy h2 {
+  margin: 0 0 10px;
+}
+
+.meet-copy p:not(.kicker) {
+  margin: 0 0 14px;
+  font-size: 16px;
+}
+
+.meet-link {
+  color: var(--teal-dark);
+  font-weight: 800;
+}
+
+@media (max-width: 680px) {
+  .meet-inner {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+
+  .meet-photo {
+    aspect-ratio: 4 / 3;
+    object-position: 50% 12%;
+  }
+
+  .meet-copy h2 {
+    font-size: 22px;
+  }
+
+  .meet-copy p:not(.kicker) {
+    font-size: 15px;
+  }
+}
+
 .checks {
   display: grid;
   gap: 12px;
