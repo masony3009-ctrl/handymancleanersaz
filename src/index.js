@@ -7,7 +7,6 @@ import { handleAdmin } from "./admin.js";
 import { handleConversionsFeed } from "./conversions.js";
 import { handleContactTap, ContactTapError } from "./contacts.js";
 import { handleAdLanding } from "./adlanding.js";
-import { alertOwner, runCrewReminders } from "./reminders.js";
 
 const DEST = "handymancleanersaz@gmail.com";
 const FROM = "requests@handymancleanersaz.com";
@@ -83,12 +82,6 @@ const CANONICAL_HOST = "handymancleanersaz.com";
 const LOCAL_HOSTS = new Set(["127.0.0.1", "localhost", "[::1]"]);
 
 export default {
-  // The TurnTrack crew app's morning reminders (src/reminders.js), on the cron
-  // in wrangler.jsonc.
-  async scheduled(event, env, ctx) {
-    ctx.waitUntil(runCrewReminders(env, event.scheduledTime, { idToken: turnTrackIdToken, alert: (title, body) => alertOwner(env, title, body) }));
-  },
-
   async fetch(request, env, ctx) {
     const url = new URL(request.url);
 

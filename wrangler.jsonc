@@ -56,13 +56,6 @@
     }
   ],
 
-  // The TurnTrack crew app's "Cleaning today!" reminders (src/reminders.js):
-  // every 15 minutes, 4:00-8:45 AM Phoenix time (11:00-15:45 UTC; Arizona has
-  // no DST, so this never shifts). REMINDER_STEP_MS there must match the 15.
-  "triggers": {
-    "crons": ["*/15 11-15 * * *"]
-  },
-
   "observability": {
     "enabled": true
   }
