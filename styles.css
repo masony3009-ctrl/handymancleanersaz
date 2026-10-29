@@ -1850,6 +1850,56 @@ button.button[disabled] {
   font-size: 12.5px;
 }
 
+/* Turnover form: city and size are enough to quote, so every longer
+   question folds into one optional section the host can open. */
+#service-form .svc-more {
+  display: block;
+  padding: 0;
+}
+
+#service-form .svc-more summary {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 8px;
+  padding: 16px 18px;
+  color: var(--teal-dark);
+  font-size: 14px;
+  font-weight: 800;
+  cursor: pointer;
+  list-style: none;
+}
+
+#service-form .svc-more summary::-webkit-details-marker {
+  display: none;
+}
+
+#service-form .svc-more summary::after {
+  content: "+";
+  flex-shrink: 0;
+  margin-left: auto;
+  font-size: 22px;
+  font-weight: 600;
+  line-height: 1;
+}
+
+#service-form .svc-more details[open] summary::after {
+  content: "\2212";
+}
+
+.svc-more-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+  padding: 0 18px 20px;
+}
+
+@media (max-width: 680px) {
+  .svc-more-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
 #service-form label {
   gap: 8px;
   font-size: 13.5px;
@@ -2694,6 +2744,28 @@ button.button[disabled] {
   color: var(--muted);
   font-size: 13.5px;
   line-height: 1.55;
+}
+
+/* Quick-price card: beds / baths / city on one row */
+.cp-fields {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1.6fr;
+  gap: 6px;
+  margin: -4px 0 12px;
+}
+
+.cp-fields select {
+  padding: 9px 6px;
+  border-radius: 8px;
+  background: #ffffff;
+  font-size: 13.5px;
+}
+
+/* Same iOS zoom guard as the main form fields */
+@media (pointer: coarse), (max-width: 980px) {
+  .cp-fields select {
+    font-size: 16px;
+  }
 }
 
 .cp-actions {

@@ -157,17 +157,33 @@
     var RESIDENTIAL = /^\/services\/house-cleaning|^\/locations\/[^\/]+\/house-cleaning\/|^\/locations\/mesa\/?$/
       .test(location.pathname);
 
+    // Hosts get a quick-price card instead of the walkthrough invite: the
+    // walkthrough version was shown 213 times in Sept-Oct 2026 and texted 0.
+    // Asking the host's size and city lets the text arrive already written,
+    // with a question we can answer in one reply.
     var COPY = RESIDENTIAL ? {
+      kicker: "Let’s Meet First",
       title: "Free Walkthrough, Exact Price",
       body: "Before anything is booked, meet the two people who will actually be in your home. We walk it with you, then give you one flat price - locked before we start, no charge, no obligation.",
+      cta: "Text Us to Set It Up",
       msg: "Hi! I saw your site - I’d like a free walkthrough and a flat quote for house cleaning.",
       label: "Free house cleaning walkthrough offer"
     } : {
-      title: "Free Walkthrough of Your Rental",
-      body: "Before you hand over a key, meet the two people who’ll be in your property. We’ll walk it with you, learn how you like it set up, and answer anything — no charge, no obligation.",
-      msg: "Hi! I saw your site - I’d like to hear more about a free walkthrough for my rental.",
-      label: "Free walkthrough offer"
+      kicker: "Quick Price",
+      title: "What’s Your Turnover Rate?",
+      body: "Pick your rental’s size and city and we’ll text back your exact flat rate.",
+      cta: "Text Me My Price",
+      quote: true,
+      label: "Turnover price check"
     };
+
+    var CITIES = ["San Tan Valley", "Queen Creek", "Gilbert", "Mesa", "Somewhere else"];
+
+    function quoteMsg(beds, baths, city) {
+      var size = [beds && beds + " bed", baths && baths + " bath"].filter(Boolean).join(" / ");
+      var where = city && city !== "Somewhere else" ? " in " + city : "";
+      return "Hi! What would a turnover cost for my " + (size ? size + " " : "") + "rental" + where + "?";
+    }
 
     if (location.pathname.indexOf("/request-service") === 0) return;
 
@@ -224,14 +240,39 @@
       x.onclick = close;
       card.appendChild(x);
 
-      card.appendChild(el("p", "cp-kicker", "Let’s Meet First"));
+      card.appendChild(el("p", "cp-kicker", COPY.kicker));
       card.appendChild(el("h2", null, COPY.title));
       card.appendChild(el("p", null, COPY.body));
 
       var actions = el("div", "cp-actions");
-      var text = el("a", "button primary", "Text Us to Set It Up");
-      text.href = "sms:" + PHONE + "?&body=" + encodeURIComponent(COPY.msg);
+      var text = el("a", "button primary", COPY.cta);
+      text.href = "sms:" + PHONE + "?&body=" + encodeURIComponent(COPY.msg || quoteMsg());
       text.addEventListener("click", function () { setTimeout(close, 120); });
+
+      if (COPY.quote) {
+        var fields = el("div", "cp-fields");
+        var pick = {};
+        [["beds", "Beds", ["1", "2", "3", "4", "5+"]],
+         ["baths", "Baths", ["1", "1.5", "2", "2.5", "3", "3.5", "4+"]],
+         ["city", "City", CITIES]].forEach(function (f) {
+          var sel = el("select");
+          sel.setAttribute("aria-label", f[1]);
+          sel.appendChild(new Option(f[1], ""));
+          f[2].forEach(function (v) { sel.appendChild(new Option(v, v)); });
+          sel.addEventListener("change", function () {
+            text.href = "sms:" + PHONE + "?&body=" +
+              encodeURIComponent(quoteMsg(pick.beds.value, pick.baths.value, pick.city.value));
+            // Which answers were given, never what they were.
+            text.setAttribute("data-filled", ["beds", "baths", "city"].filter(function (k) {
+              return pick[k].value;
+            }).join(","));
+          });
+          pick[f[0]] = sel;
+          fields.appendChild(sel);
+        });
+        card.appendChild(fields);
+      }
+
       actions.appendChild(text);
 
       var later = el("button", "cp-later", "No thanks, just browsing");

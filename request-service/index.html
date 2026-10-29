@@ -176,42 +176,15 @@
                 </div>
               </fieldset>
 
-              <!-- Turnover + recurring: timing -->
+              <!-- Turnover + recurring: the short version. City and size are enough to quote
+                   a flat rate; dates, times and instructions are settled by text. Every
+                   longer question lives in the optional section below. -->
               <fieldset class="svc-fields" data-service="turnover recurring">
-                <legend>Turnover details</legend>
-                <label>
-                  Cleaning date
-                  <input name="Cleaning date" type="text" data-picker="date" data-req readonly placeholder="Select a date" autocomplete="off">
-                  <input name="Cleaning date ISO" type="hidden" data-picker-iso>
-                </label>
-                <label>
-                  Preferred arrival time
-                  <input name="Preferred arrival time" type="text" data-picker="time" readonly placeholder="Select a time" autocomplete="off">
-                </label>
-                <label>
-                  Same-day checkout/check-in?
-                  <select name="Same-day turnover">
-                    <option>No</option>
-                    <option>Yes - guest checks out and new guest checks in same day</option>
-                  </select>
-                </label>
-                <label>
-                  Checkout time
-                  <input name="Guest checkout time" type="text" data-picker="time" readonly placeholder="Select a time" autocomplete="off">
-                </label>
-                <label>
-                  Next guest check-in time
-                  <input name="Next guest check-in time" type="text" data-picker="time" readonly placeholder="Select a time" autocomplete="off">
-                </label>
-              </fieldset>
-
-              <!-- Turnover + recurring: property -->
-              <fieldset class="svc-fields" data-service="turnover recurring">
-                <legend>Property</legend>
+                <legend>Your rental</legend>
                 <label class="full">
-                  Property address
-                  <input name="Property address" type="text" autocomplete="street-address" maxlength="300" placeholder="Street address and city (no access codes)" data-req>
-                  <span class="field-note">Do not enter gate, door, garage, lockbox, Wi-Fi, or alarm codes. We'll arrange access after booking.</span>
+                  City or street address
+                  <input name="Property address" type="text" autocomplete="street-address" maxlength="300" placeholder="e.g. Gilbert" data-req>
+                  <span class="field-note">No gate, door, lockbox, Wi-Fi, or alarm codes. We'll arrange access after booking.</span>
                 </label>
                 <label>
                   Bedrooms
@@ -221,24 +194,7 @@
                   Bathrooms
                   <input name="Bathrooms" type="number" min="0" step="0.5" placeholder="3">
                 </label>
-                <label>
-                  Current condition
-                  <select name="Current condition">
-                    <option>Normal guest turnover</option>
-                    <option>Heavy turnover</option>
-                    <option>Not sure</option>
-                  </select>
-                </label>
-                <label>
-                  Supplies and linens
-                  <select name="Supplies and linens">
-                    <option>Supplies and linens are on site</option>
-                    <option>Host ships supplies to HandymanCleaners</option>
-                    <option>Host funds HandymanCleaners to buy supplies</option>
-                    <option>We need help restocking</option>
-                    <option>Need to discuss</option>
-                  </select>
-                </label>
+                <p class="field-note full">That&rsquo;s all we need to quote. We&rsquo;ll text you your flat rate, then sort out dates and access with you.</p>
               </fieldset>
 
               <!-- Recurring only: calendar -->
@@ -250,18 +206,64 @@
                 </label>
               </fieldset>
 
-              <!-- Turnover + recurring: access & checklist -->
-              <fieldset class="svc-fields" data-service="turnover recurring">
-                <legend>Checklist and instructions</legend>
-                <label class="full">
-                  Checklist, special instructions, or notes
-                  <textarea name="Checklist or notes" rows="4" maxlength="2000" placeholder="Parking, trash day, linens, restock list, photo requests, host preferences, etc."></textarea>
-                  <span class="field-note">Have a checklist file? We'll collect it when we confirm your booking. Never enter property-access codes on this form.</span>
-                </label>
-                <label class="full">
-                  Add-ons or extra requests
-                  <textarea name="Add-ons or extra requests" rows="3" maxlength="2000" placeholder="Supply refills, handyman item, grill, patio, stains, appliance issue, extra laundry, anything beyond the standard checklist."></textarea>
-                </label>
+              <!-- Turnover + recurring: everything else, folded away -->
+              <fieldset class="svc-fields svc-more" data-service="turnover recurring">
+                <details>
+                  <summary>Add dates, times &amp; instructions now <span class="optional">(optional)</span></summary>
+                  <div class="svc-more-grid">
+                    <label>
+                      Cleaning date
+                      <input name="Cleaning date" type="text" data-picker="date" readonly placeholder="Select a date" autocomplete="off">
+                      <input name="Cleaning date ISO" type="hidden" data-picker-iso>
+                    </label>
+                    <label>
+                      Preferred arrival time
+                      <input name="Preferred arrival time" type="text" data-picker="time" readonly placeholder="Select a time" autocomplete="off">
+                    </label>
+                    <label>
+                      Same-day checkout/check-in?
+                      <select name="Same-day turnover">
+                        <option>No</option>
+                        <option>Yes - guest checks out and new guest checks in same day</option>
+                      </select>
+                    </label>
+                    <label>
+                      Checkout time
+                      <input name="Guest checkout time" type="text" data-picker="time" readonly placeholder="Select a time" autocomplete="off">
+                    </label>
+                    <label>
+                      Next guest check-in time
+                      <input name="Next guest check-in time" type="text" data-picker="time" readonly placeholder="Select a time" autocomplete="off">
+                    </label>
+                    <label>
+                      Current condition
+                      <select name="Current condition">
+                        <option>Normal guest turnover</option>
+                        <option>Heavy turnover</option>
+                        <option>Not sure</option>
+                      </select>
+                    </label>
+                    <label>
+                      Supplies and linens
+                      <select name="Supplies and linens">
+                        <option>Supplies and linens are on site</option>
+                        <option>Host ships supplies to HandymanCleaners</option>
+                        <option>Host funds HandymanCleaners to buy supplies</option>
+                        <option>We need help restocking</option>
+                        <option>Need to discuss</option>
+                      </select>
+                    </label>
+                    <label class="full">
+                      Checklist, special instructions, or notes
+                      <textarea name="Checklist or notes" rows="4" maxlength="2000" placeholder="Parking, trash day, linens, restock list, photo requests, host preferences, etc."></textarea>
+                      <span class="field-note">Have a checklist file? We'll collect it when we confirm your booking. Never enter property-access codes on this form.</span>
+                    </label>
+                    <label class="full">
+                      Add-ons or extra requests
+                      <textarea name="Add-ons or extra requests" rows="3" maxlength="2000" placeholder="Supply refills, handyman item, grill, patio, stains, appliance issue, extra laundry, anything beyond the standard checklist."></textarea>
+                    </label>
+                  </div>
+                </details>
               </fieldset>
 
               <!-- Handyman -->
@@ -427,6 +429,10 @@
           Array.prototype.forEach.call(form.elements, function (field) {
             if (!field.name || field.type === "submit") return;
             if (field.closest(".svc-fields[hidden]")) return;
+            // The optional turnover extras stay folded unless the host opens
+            // them; a closed section's dropdowns would otherwise send their
+            // defaults ("supplies on site") as if the host had chosen them.
+            if (field.closest("details:not([open])")) return;
             if (field.type === "checkbox") {
               if (field.checked) data[field.name] = field.value && field.value !== "on" ? field.value : "Yes";
               return;
@@ -437,7 +443,8 @@
             }
             var value;
             if (field.tagName === "SELECT" && field.selectedIndex > -1) {
-              value = field.options[field.selectedIndex].text.trim();
+              // An unanswered "Select one" placeholder (value "") is not an answer.
+              value = field.value ? field.options[field.selectedIndex].text.trim() : "";
             } else {
               value = (field.value || "").trim();
             }

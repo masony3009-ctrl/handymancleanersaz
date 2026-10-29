@@ -98,7 +98,7 @@
               var t = e.target.closest("a,button");
               if (!t) return;
               var secs = Math.round((Date.now() - popupSeenAt) / 1000);
-              if (t.tagName === "A") cap("popup_texted", { seconds_visible: secs, page: page() });
+              if (t.tagName === "A") cap("popup_texted", { seconds_visible: secs, page: page(), filled: t.getAttribute("data-filled") || "" });
               else cap("popup_dismissed", { seconds_visible: secs, page: page() });
             });
           }
