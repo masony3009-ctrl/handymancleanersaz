@@ -1470,6 +1470,7 @@ footer {
 
 .info-split img {
   width: 100%;
+  height: auto; /* else a height attribute on the img beats aspect-ratio */
   aspect-ratio: 4 / 3;
   object-fit: cover;
   border-radius: 12px;
