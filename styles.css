@@ -3057,3 +3057,11 @@ button.button[disabled] {
     font-size: 13px;
   }
 }
+
+.incl-price {
+  margin: -6px 0 18px;
+  text-align: center;
+  color: var(--teal-dark);
+  font-size: 17px;
+  font-weight: 800;
+}
