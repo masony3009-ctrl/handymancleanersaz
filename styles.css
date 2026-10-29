@@ -2992,3 +2992,68 @@ button.button[disabled] {
   color: var(--muted);
   margin: 14px 0 0;
 }
+
+/* "What's Included" on rental landing pages: six scannable tiles instead of
+   the long room-by-room list, which stays on the turnover page (#checklist). */
+.incl-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 14px;
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+.incl-item {
+  padding: 18px;
+  background: #ffffff;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+}
+
+.incl-item svg {
+  width: 28px;
+  height: 28px;
+  margin-bottom: 8px;
+  color: var(--teal-dark);
+}
+
+.incl-item h3 {
+  margin: 0 0 4px;
+  font-size: 16px;
+}
+
+.incl-item p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 14px;
+  line-height: 1.45;
+}
+
+.incl-more {
+  margin: 18px 0 0;
+  text-align: center;
+  font-weight: 800;
+}
+
+.incl-more a {
+  color: var(--teal-dark);
+}
+
+@media (max-width: 680px) {
+  .incl-grid {
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+
+  .incl-item {
+    padding: 14px;
+  }
+
+  .incl-item h3 {
+    font-size: 15px;
+  }
+
+  .incl-item p {
+    font-size: 13px;
+  }
+}
