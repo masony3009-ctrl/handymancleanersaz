@@ -312,6 +312,30 @@ footer a,
   flex: 0 0 auto;
 }
 
+/* Rental landing pages: where we work, then three proof pills, so the first
+   screen answers "do you serve me, are you legit, how fast do you answer". */
+.hero-area {
+  margin: -6px 0 20px;
+  color: #ffffff;
+  font-size: 15px;
+  font-weight: 800;
+  letter-spacing: 0.3px;
+}
+
+.hero-pills {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px 10px;
+}
+
+@media (max-width: 680px) {
+  .hero-pills .hero-trust {
+    padding: 7px 12px;
+    font-size: 12.5px;
+  }
+}
+
 /* Same pill on a light background, for pages that have no hero image behind it. */
 .hero-trust.on-light {
   margin: 14px 0 0;

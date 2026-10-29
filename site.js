@@ -171,7 +171,7 @@
     } : {
       kicker: "Quick Price",
       title: "What’s Your Turnover Rate?",
-      body: "Pick your rental’s size and city and we’ll text back your exact flat rate.",
+      body: "Pick your rental’s size and city and we’ll text back your exact flat rate within 30 minutes (9 AM–9 PM).",
       cta: "Text Me My Price",
       quote: true,
       label: "Turnover price check"
