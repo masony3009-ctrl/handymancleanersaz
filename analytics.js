@@ -94,12 +94,21 @@
           if (n.nodeType === 1 && n.classList && n.classList.contains("cp-card")) {
             popupSeenAt = Date.now();
             cap("popup_shown", { page: page() });
+            var secs = function () { return Math.round((Date.now() - popupSeenAt) / 1000); };
             n.addEventListener("click", function (e) {
               var t = e.target.closest("a,button");
               if (!t) return;
-              var secs = Math.round((Date.now() - popupSeenAt) / 1000);
-              if (t.tagName === "A") cap("popup_texted", { seconds_visible: secs, page: page(), filled: t.getAttribute("data-filled") || "" });
-              else cap("popup_dismissed", { seconds_visible: secs, page: page() });
+              // The text button carries data-filled; the Privacy/Terms links
+              // and the computer form's submit button are neither text nor dismissal.
+              if (t.hasAttribute("data-filled")) cap("popup_texted", { seconds_visible: secs(), page: page(), filled: t.getAttribute("data-filled") });
+              else if (t.classList.contains("cp-close") || t.classList.contains("cp-later")) cap("popup_dismissed", { seconds_visible: secs(), page: page() });
+            });
+            // Computers send through the request endpoint instead of texting.
+            n.addEventListener("hc:popup-sent", function (e) {
+              cap("popup_sent", { seconds_visible: secs(), page: page(), filled: (e.detail && e.detail.filled) || "" });
+            });
+            n.addEventListener("hc:popup-error", function () {
+              cap("popup_send_error", { page: page() });
             });
           }
         });

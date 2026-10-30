@@ -2868,6 +2868,64 @@ button.button[disabled] {
   font-size: 12px;
 }
 
+/* Computers: name + number instead of an sms: link. Undoes the request
+   form's card styling, which every <form> gets. */
+.cp-card .cp-send {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 6px;
+  padding: 0;
+  background: none;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+}
+
+.cp-send input[type="text"],
+.cp-send input[type="tel"],
+.cp-send input[type="email"] {
+  padding: 9px 10px;
+  border-radius: 8px;
+  font-size: 13.5px;
+}
+
+.cp-card .cp-consent {
+  display: block;
+  margin: 2px 0 4px;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.cp-consent input {
+  width: auto;
+  margin: 0 4px 0 0;
+  vertical-align: -2px;
+}
+
+.cp-consent a {
+  color: var(--teal-dark);
+}
+
+.cp-card .cp-status {
+  margin: 0;
+  color: #b42318;
+  font-size: 12.5px;
+}
+
+.cp-card .cp-status:empty {
+  display: none;
+}
+
+.cp-card .cp-done {
+  margin: 0;
+  padding: 10px 12px;
+  background: var(--light);
+  border-radius: 8px;
+  color: var(--ink);
+  font-weight: 600;
+}
+
 .cp-later {
   padding: 2px;
   background: none;

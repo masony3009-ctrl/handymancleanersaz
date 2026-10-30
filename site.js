@@ -167,6 +167,13 @@
       return v.city && v.city !== "Somewhere else" ? " in " + v.city : "";
     }
 
+    // The request form's service keys (SERVICE_TYPES in src/index.js).
+    function homeService(kind) {
+      if (/move-out/.test(kind || "")) return "moveout";
+      if (/deep/.test(kind || "")) return "deepclean";
+      return "housecleaning";
+    }
+
     // Options are [value, label] when the text needs different wording than
     // the dropdown shows.
     var HOME_KINDS = [
@@ -184,6 +191,7 @@
         body: "Pick your rental’s size and city and we’ll text back your exact flat rate within 30 minutes (9 AM–9 PM).",
         label: "Turnover price check",
         fields: [["beds", "Beds", BEDS], ["baths", "Baths", BATHS], ["city", "City", CITIES]],
+        service: function () { return "turnover"; },
         msg: function (v) {
           return "Hi! What would a turnover cost for my " + size(v) + noun + where(v) + "?";
         }
@@ -196,6 +204,7 @@
       body: "Pick the clean and your home’s size. We’ll text back a price within 30 minutes (9 AM–9 PM), then lock the exact rate at a free walkthrough.",
       label: "House cleaning price check",
       fields: [["kind", "Type of clean", HOME_KINDS, true], ["beds", "Beds", BEDS], ["baths", "Baths", BATHS], ["city", "City", CITIES]],
+      service: function (v) { return homeService(v.kind); },
       msg: function (v) {
         return "Hi! What would " + (v.kind || "a house cleaning") + " cost for my " + size(v) + "home" + where(v) + "?";
       }
@@ -216,6 +225,7 @@
         ["some furniture or BBQ assembly", "Assembly"],
         ["a handyman job", "Something else"]
       ], true], ["city", "City", CITIES, true]],
+      service: function () { return "handyman"; },
       msg: function (v) {
         return "Hi! What would " + (v.job || "a handyman job") + " cost" + where(v) + "?";
       }
@@ -232,6 +242,10 @@
         ["a house cleaning", "House cleaning"],
         ["a move-out clean", "Move-out clean"]
       ], true], ["beds", "Beds", BEDS], ["baths", "Baths", BATHS], ["city", "City", CITIES]],
+      service: function (v) {
+        if (v.svc === "turnover") return "turnover";
+        return v.svc ? homeService(v.svc) : "other";
+      },
       msg: function (v) {
         if (v.svc === "turnover") return turnover("rental").msg(v);
         return "Hi! What would " + (v.svc || "a cleaning") + " cost for my " + size(v) + "home" + where(v) + "?";
@@ -293,6 +307,100 @@
       return n;
     }
 
+    function input(type, name, placeholder, auto) {
+      var i = el("input", "ph-no-capture");
+      i.type = type;
+      i.name = name;
+      i.placeholder = placeholder;
+      i.setAttribute("aria-label", placeholder);
+      i.autocomplete = auto;
+      return i;
+    }
+
+    // A computer has nothing to send an sms: link with, so there the card
+    // takes a name and number and sends the answers through the request form's
+    // endpoint (email + phone alert + TurnTrack), and we text the price back.
+    // Oct 29 2026: both desktop visitors who answered the questions got
+    // nowhere - one gave up, one picked up her phone and texted anyway.
+    var CAN_TEXT = !!(window.matchMedia && window.matchMedia("(pointer: coarse)").matches);
+
+    function sendForm(values, filled) {
+      var form = el("form", "cp-send");
+      var host = card; // the card may be closed while a send is in flight
+      var name = input("text", "Name", "Your name", "name");
+      var phone = input("tel", "Phone", "Mobile number (we text your price)", "tel");
+      var email = input("email", "Email", "Email (optional)", "email");
+      name.required = true;
+      phone.required = true;
+      phone.pattern = "[^0-9]*([0-9][^0-9]*){10,15}";
+      phone.title = "A 10-digit phone number";
+
+      var consent = el("label", "cp-consent");
+      var box = el("input");
+      box.type = "checkbox";
+      box.required = true;
+      consent.appendChild(box);
+      consent.appendChild(document.createTextNode(" I agree to the "));
+      var privacy = el("a", null, "Privacy Policy");
+      privacy.href = "/privacy/";
+      var terms = el("a", null, "Terms");
+      terms.href = "/terms/";
+      consent.appendChild(privacy);
+      consent.appendChild(document.createTextNode(" and "));
+      consent.appendChild(terms);
+      consent.appendChild(document.createTextNode("."));
+
+      var send = el("button", "button primary", "Text Me My Price");
+      send.type = "submit";
+      var status = el("p", "cp-status");
+      status.setAttribute("role", "status");
+
+      [name, phone, email, consent, send, status].forEach(function (n) { form.appendChild(n); });
+
+      form.addEventListener("submit", function (e) {
+        e.preventDefault();
+        if (send.disabled) return;
+        var v = values();
+        var data = {
+          "Name": name.value,
+          "Phone": phone.value,
+          "Email": email.value,
+          "Service type": COPY.service(v),
+          "Message": COPY.msg(v) + " (sent from the quick-price box on " + path + ")",
+          "Acknowledgment": "Agreed to Privacy Policy and Terms",
+          "Google click ID": typeof window.hcClickId === "function" ? window.hcClickId() : ""
+        };
+        if (v.beds) data["Bedrooms"] = v.beds;
+        if (v.baths) data["Bathrooms"] = v.baths;
+        if (v.city && v.city !== "Somewhere else") data["Address"] = v.city + ", AZ";
+
+        send.disabled = true;
+        send.textContent = "Sending…";
+        status.textContent = "";
+        fetch("/api/request", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(data)
+        }).then(function (res) {
+          return res.json().catch(function () { return {}; }).then(function (body) {
+            if (!res.ok || !body.ok) throw new Error(body.error || "");
+          });
+        }).then(function () {
+          remember();
+          form.replaceWith(el("p", "cp-done", "Got it! We’ll text your price to " + phone.value +
+            " within 30 minutes (9 AM–9 PM)."));
+          host.dispatchEvent(new CustomEvent("hc:popup-sent", { detail: { filled: filled(v) } }));
+        }).catch(function (err) {
+          send.disabled = false;
+          send.textContent = "Text Me My Price";
+          status.textContent = (err.message || "That didn’t go through.") +
+            " You can also call or text Mason at 480-800-7789.";
+          host.dispatchEvent(new CustomEvent("hc:popup-error"));
+        });
+      });
+      return form;
+    }
+
     function open() {
       if (card || seen()) return;
 
@@ -314,12 +422,21 @@
       var text = el("a", "button primary", "Text Me My Price");
       var pick = {};
 
-      function update() {
+      function values() {
         var v = {};
         Object.keys(pick).forEach(function (k) { v[k] = pick[k].value; });
+        return v;
+      }
+
+      // Which answers were given, never what they were.
+      function filled(v) {
+        return Object.keys(v).filter(function (k) { return v[k]; }).join(",");
+      }
+
+      function update() {
+        var v = values();
         text.href = "sms:" + PHONE + "?&body=" + encodeURIComponent(COPY.msg(v));
-        // Which answers were given, never what they were.
-        text.setAttribute("data-filled", Object.keys(v).filter(function (k) { return v[k]; }).join(","));
+        text.setAttribute("data-filled", filled(v));
       }
 
       text.addEventListener("click", function () { setTimeout(close, 120); });
@@ -339,7 +456,8 @@
       card.appendChild(fields);
       update();
 
-      actions.appendChild(text);
+      if (CAN_TEXT) actions.appendChild(text);
+      else actions.appendChild(sendForm(values, filled));
 
       var later = el("button", "cp-later", "No thanks, just browsing");
       later.type = "button";
