@@ -54,6 +54,8 @@ const SERVICE_TYPES = new Map([
   ["Handyman / repairs & installs", "Handyman / repairs & installs"],
   ["housecleaning", "House cleaning - routine (residential)"],
   ["House cleaning - routine (residential)", "House cleaning - routine (residential)"],
+  // Deep clean and move-out are no longer on the form; kept so an
+  // already-open old page can still submit.
   ["deepclean", "House cleaning - deep clean (residential)"],
   ["House cleaning - deep clean (residential)", "House cleaning - deep clean (residential)"],
   ["moveout", "Move-out / move-in cleaning (residential)"],

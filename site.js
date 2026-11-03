@@ -167,21 +167,12 @@
       return v.city && v.city !== "Somewhere else" ? " in " + v.city : "";
     }
 
-    // The request form's service keys (SERVICE_TYPES in src/index.js).
-    function homeService(kind) {
-      if (/move-out/.test(kind || "")) return "moveout";
-      if (/deep/.test(kind || "")) return "deepclean";
-      return "housecleaning";
-    }
-
     // Options are [value, label] when the text needs different wording than
     // the dropdown shows.
     var HOME_KINDS = [
       ["cleaning every 2 weeks", "Every 2 weeks"],
       ["weekly cleaning", "Weekly"],
-      ["monthly cleaning", "Monthly"],
-      ["a one-time deep clean", "One-time deep clean"],
-      ["a move-out clean", "Move-out clean"]
+      ["monthly cleaning", "Monthly"]
     ];
 
     function turnover(noun) {
@@ -201,10 +192,10 @@
     var HOME = {
       kicker: "Quick Price",
       title: "What Would Your Home Cost?",
-      body: "Pick the clean and your home’s size. We’ll text back a price within 30 minutes (9 AM–9 PM), then lock the exact rate at a free walkthrough.",
+      body: "Pick how often and your home’s size. We’ll text back a price within 30 minutes (9 AM–9 PM), then lock the exact rate at a free walkthrough.",
       label: "House cleaning price check",
-      fields: [["kind", "Type of clean", HOME_KINDS, true], ["beds", "Beds", BEDS], ["baths", "Baths", BATHS], ["city", "City", CITIES]],
-      service: function (v) { return homeService(v.kind); },
+      fields: [["kind", "How often", HOME_KINDS, true], ["beds", "Beds", BEDS], ["baths", "Baths", BATHS], ["city", "City", CITIES]],
+      service: function () { return "housecleaning"; },
       msg: function (v) {
         return "Hi! What would " + (v.kind || "a house cleaning") + " cost for my " + size(v) + "home" + where(v) + "?";
       }
@@ -239,12 +230,11 @@
       label: "Cleaning price check",
       fields: [["svc", "What do you need?", [
         ["turnover", "Airbnb / Vrbo turnover"],
-        ["a house cleaning", "House cleaning"],
-        ["a move-out clean", "Move-out clean"]
+        ["a house cleaning", "House cleaning"]
       ], true], ["beds", "Beds", BEDS], ["baths", "Baths", BATHS], ["city", "City", CITIES]],
       service: function (v) {
         if (v.svc === "turnover") return "turnover";
-        return v.svc ? homeService(v.svc) : "other";
+        return v.svc ? "housecleaning" : "other";
       },
       msg: function (v) {
         if (v.svc === "turnover") return turnover("rental").msg(v);
