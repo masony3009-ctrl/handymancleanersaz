@@ -34,8 +34,9 @@ export const REF_LENGTH = 5;
 
 const CHANNELS = new Set(["text", "call"]);
 
-// Matches what site.js stores: a bare gclid, or "wbraid:"/"gbraid:" + value.
-const CLICK_ID = /^(?:(?:wbraid|gbraid):)?[A-Za-z0-9_.-]{10,200}$/;
+// Matches what site.js stores: a bare gclid, or "wbraid:"/"gbraid:"/"msclkid:"
+// + value (msclkid is Microsoft Ads' click id, reported by msconversions.js).
+const CLICK_ID = /^(?:(?:wbraid|gbraid|msclkid):)?[A-Za-z0-9_.-]{10,200}$/;
 
 // One person tapping Text three times is one contact, not three.
 const DEDUPE_MINUTES = 10;

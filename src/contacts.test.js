@@ -21,6 +21,7 @@ import {
 
 const GCLID = "Cj0KCQjwTESTgclid_contacts-123";
 const WBRAID = "wbraid:Cj8TESTwbraidcontacts456";
+const MSCLKID = "msclkid:0a1b2c3dTESTcontactsmsclkid";
 
 let errors;
 beforeEach(() => {
@@ -91,6 +92,7 @@ test("refFor: pinned vector shared with site.js", async () => {
 test("parse: a valid text tap and a valid call tap are accepted", async () => {
   assert.deepEqual(await parseContactTap(JSON.stringify(await validTap("text"))), await validTap("text"));
   assert.deepEqual(await parseContactTap(JSON.stringify(await validTap("call", WBRAID))), await validTap("call", WBRAID));
+  assert.deepEqual(await parseContactTap(JSON.stringify(await validTap("text", MSCLKID))), await validTap("text", MSCLKID));
 });
 
 test("parse: a ref that does not belong to the click id is rejected", async () => {

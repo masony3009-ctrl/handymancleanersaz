@@ -38,13 +38,17 @@
   // iOS-privacy variants are prefixed ("wbraid:..." / "gbraid:..."), which is
   // exactly how they land in the booking record for the upload script to
   // split apart.
+  //
+  // Microsoft Ads (Bing) clicks carry msclkid instead, stored the same way as
+  // "msclkid:..." and reported by src/msconversions.js; the Google feed skips
+  // them. Microsoft's offline-conversion window is also 90 days.
   (function () {
     var KEY = "hc_gclid";
     var MAX_AGE_MS = 90 * 864e5;
 
     try {
       var q = new URLSearchParams(location.search);
-      var kinds = ["gclid", "wbraid", "gbraid"];
+      var kinds = ["gclid", "wbraid", "gbraid", "msclkid"];
       for (var i = 0; i < kinds.length; i++) {
         var id = q.get(kinds[i]);
         if (id) {

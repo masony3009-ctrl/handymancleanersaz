@@ -43,81 +43,29 @@ const MAX_ROWS = 5000;
 // cannot timestamp honestly, so it is skipped rather than guessed at.
 const SQLITE_UTC = /^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/;
 
+export const FEED_HEADERS = {
+  "Cache-Control": "no-store, max-age=0",
+  "X-Robots-Tag": "noindex, nofollow",
+  "X-Content-Type-Options": "nosniff",
+  "Referrer-Policy": "no-referrer",
+};
+
 export async function handleConversionsFeed(request, env) {
-  const headers = {
-    "Cache-Control": "no-store, max-age=0",
-    "X-Robots-Tag": "noindex, nofollow",
-    "X-Content-Type-Options": "nosniff",
-    "Referrer-Policy": "no-referrer",
-  };
-
-  // Loud on purpose. A feed that answered 200 with just a header row would be
-  // indistinguishable from "no leads yet", which is precisely the silent
-  // failure this whole mechanism exists to prevent.
-  if (!env.CONVERSIONS_FEED_KEY) {
-    console.error("CONVERSIONS_FEED_KEY missing - /api/conversions.csv is disabled");
-    return new Response("Conversion feed not configured\n", {
-      status: 503,
-      headers: { ...headers, "Content-Type": "text/plain; charset=utf-8" },
-    });
-  }
-
-  if (!(await authorized(request, env.CONVERSIONS_FEED_KEY))) {
-    return new Response("Unauthorized\n", {
-      status: 401,
-      headers: {
-        ...headers,
-        "Content-Type": "text/plain; charset=utf-8",
-        "WWW-Authenticate": 'Basic realm="conversions", charset="UTF-8"',
-      },
-    });
-  }
-
-  const { results } = await env.DB.prepare(
-    `SELECT details, created_at FROM requests
-      WHERE created_at >= datetime('now', ?1)
-      ORDER BY created_at ASC
-      LIMIT ?2`
-  ).bind(`-${WINDOW_DAYS} days`, MAX_ROWS).all();
+  const refused = await refuseFeedRequest(request, env, "/api/conversions.csv");
+  if (refused) return refused;
 
   const lines = ["Google Click ID,WBRAID,GBRAID,Conversion Name,Conversion Time"];
 
-  for (const row of results || []) {
-    if (!SQLITE_UTC.test(String(row.created_at || ""))) continue;
-
-    let details;
-    try {
-      details = JSON.parse(row.details || "{}");
-    } catch (err) {
-      // One unreadable row must not cost us every other lead in the file.
-      console.error("conversions feed: unparseable details, row skipped");
-      continue;
-    }
-
-    const click = splitClickId(details["Google click ID"]);
-    if (!click) continue; // organic visit - nothing for Google to match
+  for (const lead of await adLeads(env)) {
+    const click = splitClickId(lead.clickId);
+    if (!click) continue; // organic visit or a Microsoft click - nothing for Google to match
 
     lines.push([
       csv(click.kind === "gclid" ? click.value : ""),
       csv(click.kind === "wbraid" ? click.value : ""),
       csv(click.kind === "gbraid" ? click.value : ""),
       csv(CONVERSION_NAME),
-      csv(`${row.created_at}+00:00`),
-    ].join(","));
-  }
-
-  // Leads that texted or called instead of using the form (see contacts.js).
-  // Only taps Mason confirmed in /admin appear here, timed at the tap.
-  for (const row of await contactLeadsForFeed(env, WINDOW_DAYS, MAX_ROWS)) {
-    if (!SQLITE_UTC.test(String(row.tapped_at))) continue;
-    const click = splitClickId(row.click_id);
-    if (!click) continue;
-    lines.push([
-      csv(click.kind === "gclid" ? click.value : ""),
-      csv(click.kind === "wbraid" ? click.value : ""),
-      csv(click.kind === "gbraid" ? click.value : ""),
-      csv(CONVERSION_NAME),
-      csv(`${row.tapped_at}+00:00`),
+      csv(`${lead.time}+00:00`),
     ].join(","));
   }
 
@@ -139,8 +87,75 @@ export async function handleConversionsFeed(request, env) {
 
   return new Response(lines.join("\r\n") + "\r\n", {
     status: 200,
-    headers: { ...headers, "Content-Type": "text/csv; charset=utf-8" },
+    headers: { ...FEED_HEADERS, "Content-Type": "text/csv; charset=utf-8" },
   });
+}
+
+// The gate both conversion feeds share (Microsoft's is msconversions.js):
+// a Response to send back when the request may not have the feed, else null.
+export async function refuseFeedRequest(request, env, path) {
+  // Loud on purpose. A feed that answered 200 with just a header row would be
+  // indistinguishable from "no leads yet", which is precisely the silent
+  // failure this whole mechanism exists to prevent.
+  if (!env.CONVERSIONS_FEED_KEY) {
+    console.error(`CONVERSIONS_FEED_KEY missing - ${path} is disabled`);
+    return new Response("Conversion feed not configured\n", {
+      status: 503,
+      headers: { ...FEED_HEADERS, "Content-Type": "text/plain; charset=utf-8" },
+    });
+  }
+
+  if (!(await authorized(request, env.CONVERSIONS_FEED_KEY))) {
+    return new Response("Unauthorized\n", {
+      status: 401,
+      headers: {
+        ...FEED_HEADERS,
+        "Content-Type": "text/plain; charset=utf-8",
+        "WWW-Authenticate": 'Basic realm="conversions", charset="UTF-8"',
+      },
+    });
+  }
+  return null;
+}
+
+// Every lead in the window that carries an ad click id, as { clickId, time }
+// with time in SQLite's UTC shape. Both feeds read this list and each keeps
+// only the click ids its own ad network issued.
+export async function adLeads(env) {
+  const leads = [];
+
+  const { results } = await env.DB.prepare(
+    `SELECT details, created_at FROM requests
+      WHERE created_at >= datetime('now', ?1)
+      ORDER BY created_at ASC
+      LIMIT ?2`
+  ).bind(`-${WINDOW_DAYS} days`, MAX_ROWS).all();
+
+  for (const row of results || []) {
+    if (!SQLITE_UTC.test(String(row.created_at || ""))) continue;
+
+    let details;
+    try {
+      details = JSON.parse(row.details || "{}");
+    } catch (err) {
+      // One unreadable row must not cost us every other lead in the file.
+      console.error("conversions feed: unparseable details, row skipped");
+      continue;
+    }
+
+    // The field predates Microsoft Ads; it holds whichever ad's click id
+    // site.js stored, Microsoft's included.
+    leads.push({ clickId: details["Google click ID"], time: row.created_at });
+  }
+
+  // Leads that texted or called instead of using the form (see contacts.js).
+  // Only taps Mason confirmed in /admin appear here, timed at the tap.
+  for (const row of await contactLeadsForFeed(env, WINDOW_DAYS, MAX_ROWS)) {
+    if (!SQLITE_UTC.test(String(row.tapped_at))) continue;
+    leads.push({ clickId: row.click_id, time: row.tapped_at });
+  }
+
+  return leads;
 }
 
 // Two ways in, because Google Ads' scheduled fetch offers a username/password
@@ -169,6 +184,7 @@ async function authorized(request, secret) {
 function splitClickId(raw) {
   const value = String(raw == null ? "" : raw).trim();
   if (!value) return null;
+  if (value.startsWith("msclkid:")) return null; // Microsoft's - see msconversions.js
   if (value.startsWith("wbraid:")) return kindOf("wbraid", value.slice(7));
   if (value.startsWith("gbraid:")) return kindOf("gbraid", value.slice(7));
   return kindOf("gclid", value);
@@ -179,7 +195,7 @@ function kindOf(kind, value) {
   return trimmed ? { kind, value: trimmed } : null;
 }
 
-function csv(value) {
+export function csv(value) {
   const s = String(value == null ? "" : value);
   return /[",\r\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
 }

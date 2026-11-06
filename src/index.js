@@ -5,6 +5,7 @@
 import { EmailMessage } from "cloudflare:email";
 import { handleAdmin } from "./admin.js";
 import { handleConversionsFeed } from "./conversions.js";
+import { handleMicrosoftConversionsFeed } from "./msconversions.js";
 import { handleContactTap, ContactTapError } from "./contacts.js";
 import { handleAdLanding } from "./adlanding.js";
 
@@ -107,16 +108,20 @@ export default {
       return handleAdmin(request, env);
     }
 
-    // Google Ads pulls this on a schedule and credits the ad clicks that
-    // turned into leads. Authenticated, and it carries no customer data -
-    // src/conversions.js explains why the site reports conversions this way
-    // round instead of loading a Google tag.
-    if (url.pathname === "/api/conversions.csv") {
+    // Google Ads (and, from the second path, Microsoft Ads) pulls this on a
+    // schedule and credits the ad clicks that turned into leads.
+    // Authenticated, and it carries no customer data - src/conversions.js
+    // explains why the site reports conversions this way round instead of
+    // loading an ad network's tag.
+    const feed = url.pathname === "/api/conversions.csv" ? handleConversionsFeed
+      : url.pathname === "/api/microsoft-conversions.csv" ? handleMicrosoftConversionsFeed
+      : null;
+    if (feed) {
       if (request.method !== "GET" && request.method !== "HEAD") {
         return json({ ok: false, error: "Method not allowed" }, 405);
       }
       try {
-        return await handleConversionsFeed(request, env);
+        return await feed(request, env);
       } catch (err) {
         // A feed that fails quietly looks exactly like a feed with no leads.
         console.error("conversions feed error:", err && err.message);
