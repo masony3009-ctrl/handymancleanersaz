@@ -39,6 +39,16 @@ export async function handleMicrosoftConversionsFeed(request, env) {
     lines.push([csv(CONVERSION_NAME), csv(microsoftTime(lead.time)), "", "", csv(id)].join(","));
   }
 
+  // Microsoft's "Save and preview" would not save the schedule while this file
+  // held no data rows, the same wall Google's connector hit (see conversions.js).
+  // So the same fix: with no real leads, one placeholder row whose click id is
+  // deliberately fake. Microsoft rejects that row on import - a harmless warning
+  // that proves the feed is alive - and it disappears with the first real lead.
+  if (lines.length === 2) {
+    const stamp = microsoftTime(new Date().toISOString().slice(0, 19).replace("T", " "));
+    lines.push(`${CONVERSION_NAME},${stamp},,,SAMPLE-SCHEMA-ROW-NOT-A-REAL-CLICK`);
+  }
+
   return new Response(lines.join("\r\n") + "\r\n", {
     status: 200,
     headers: { ...FEED_HEADERS, "Content-Type": "text/csv; charset=utf-8" },

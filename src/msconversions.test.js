@@ -92,9 +92,17 @@ test("confirmed text/call leads with a Microsoft click are listed at the tap tim
   assert.deepEqual(lines.slice(2, -1), ["Request Form Submitted,11/6/2026 7:15:09 AM,,,ffffTESTcontactmsclkid0000"]);
 });
 
-test("no Microsoft leads -> just the parameters and header lines", async () => {
-  const body = await (await get(stubEnv(ROWS.slice(1)))).text();
-  assert.equal(body, `${PARAMETERS}\r\n${HEADER}\r\n`);
+test("no Microsoft leads -> exactly one placeholder row with a fake click id", async () => {
+  const lines = (await (await get(stubEnv(ROWS.slice(1)))).text()).split("\r\n");
+  assert.equal(lines.length, 4);
+  assert.deepEqual(lines.slice(0, 2), [PARAMETERS, HEADER]);
+  assert.match(lines[2], /^Request Form Submitted,\d{1,2}\/\d{1,2}\/\d{4} \d{1,2}:\d{2}:\d{2} [AP]M,,,SAMPLE-SCHEMA-ROW-NOT-A-REAL-CLICK$/);
+  assert.equal(lines[3], "");
+});
+
+test("a real Microsoft lead suppresses the placeholder row", async () => {
+  const body = await (await get(stubEnv(ROWS))).text();
+  assert.ok(!body.includes("SAMPLE-SCHEMA-ROW"));
 });
 
 test("the Google feed never lists a Microsoft click id", async () => {
