@@ -453,11 +453,6 @@
       if (CAN_TEXT) actions.appendChild(text);
       else actions.appendChild(sendForm(values, filled));
 
-      var later = el("button", "cp-later", "No thanks, just browsing");
-      later.type = "button";
-      later.onclick = close;
-      actions.appendChild(later);
-
       card.appendChild(actions);
       document.body.appendChild(card);
       document.addEventListener("keydown", onKey);
