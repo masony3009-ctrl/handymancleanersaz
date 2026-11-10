@@ -1522,6 +1522,35 @@ footer {
   box-shadow: var(--shadow);
 }
 
+/* Phone screenshots of host updates, shown under an info-split */
+.text-proof-row {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 28px;
+  margin-top: 40px;
+}
+
+.text-proof {
+  width: 300px;
+  max-width: 100%;
+  margin: 0;
+  text-align: center;
+}
+
+.text-proof img {
+  width: 100%;
+  height: auto;
+  border-radius: 22px;
+  box-shadow: var(--shadow);
+}
+
+.text-proof figcaption {
+  margin-top: 12px;
+  font-size: 14.5px;
+  color: var(--muted);
+}
+
 /* Task / feature chip list */
 .tasklist {
   display: grid;
