@@ -1527,6 +1527,7 @@ footer {
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
+  align-items: flex-start;
   gap: 28px;
   margin-top: 40px;
 }
