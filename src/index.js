@@ -10,7 +10,9 @@ import { handleContactTap, ContactTapError } from "./contacts.js";
 import { handleAdLanding } from "./adlanding.js";
 
 const DEST = "handymancleanersaz@gmail.com";
-const FROM = "requests@handymancleanersaz.com";
+// Sent from the outreach. subdomain, which keeps its own Cloudflare Email
+// Routing, so the root domain's MX records can point at Google Workspace.
+const FROM = "requests@outreach.handymancleanersaz.com";
 const MAX_FIELD = 2000; // per-field length cap
 const MAX_FIELDS = 40;
 const MAX_BODY_BYTES = 64 * 1024;
