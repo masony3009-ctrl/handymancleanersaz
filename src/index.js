@@ -176,7 +176,7 @@ export default {
         }
         console.error("request-form error:", err && err.message);
         return json(
-          { ok: false, error: "Something went wrong on our end. Please email " + DEST + " or call 480-800-7789." },
+          { ok: false, error: "Something went wrong on our end. Please email mason@handymancleanersaz.com or call 480-800-7789." },
           500
         );
       }
