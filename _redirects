@@ -5,3 +5,14 @@
 # Restocking folded into recurring cleaning
 /services/supply-restocking/  /services/recurring-vacation-rental-cleaning/  301
 /services/supply-restocking   /services/recurring-vacation-rental-cleaning/  301
+# Residential house cleaning paused (Nov 16 2026). Pages kept in the repo; delete these lines to bring them back.
+/services/house-cleaning/  /services/airbnb-turnover-cleaning/  301
+/services/house-cleaning   /services/airbnb-turnover-cleaning/  301
+/locations/gilbert/house-cleaning/  /locations/gilbert/  301
+/locations/gilbert/house-cleaning   /locations/gilbert/  301
+/locations/queen-creek/house-cleaning/  /locations/queen-creek/  301
+/locations/queen-creek/house-cleaning   /locations/queen-creek/  301
+/locations/san-tan-valley/house-cleaning/  /locations/san-tan-valley/  301
+/locations/san-tan-valley/house-cleaning   /locations/san-tan-valley/  301
+/locations/mesa/  /locations/mesa/airbnb-cleaning/  301
+/locations/mesa   /locations/mesa/airbnb-cleaning/  301

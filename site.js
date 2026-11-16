@@ -257,7 +257,7 @@
       /^\/services\/airbnb/.test(path) ? turnover("Airbnb") :
       /^\/services\/vrbo/.test(path) ? turnover("Vrbo") :
       /^\/(services|locations)\//.test(path) || path === "/" ? turnover("rental") :
-      ANY;
+      turnover("rental"); // was ANY (asks house cleaning vs turnover); residential paused Nov 16 2026
 
     if (location.pathname.indexOf("/request-service") === 0) return;
 
