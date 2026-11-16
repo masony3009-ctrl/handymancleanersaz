@@ -376,7 +376,7 @@
 
     <div class="mobile-sticky">
       <a href="sms:4808007789">Text</a>
-      <a href="#request">Get a Quote</a>
+      <a href="#request" id="sticky-submit">Send Request</a>
     </div>
 
     <script>
@@ -466,6 +466,18 @@
         });
 
         var submitBtn = document.getElementById("form-submit");
+
+        // The phone sticky bar sits over this form, so its main button sends
+        // the form (or flags the first missing field) instead of only jumping
+        // back to the top - visitors read it as the submit button. Without JS
+        // it falls back to the #request jump.
+        var stickySubmit = document.getElementById("sticky-submit");
+        if (stickySubmit) {
+          stickySubmit.addEventListener("click", function (event) {
+            event.preventDefault();
+            if (!submitBtn.disabled) submitBtn.click();
+          });
+        }
 
         form.addEventListener("submit", function (event) {
           event.preventDefault();
