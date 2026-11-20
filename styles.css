@@ -50,6 +50,19 @@ p {
   margin-top: 0;
 }
 
+/* No one-word last lines ("...COUNT / ON", "...ON / TURNO.") */
+h1,
+h2,
+h3 {
+  text-wrap: balance;
+}
+
+p,
+li,
+blockquote {
+  text-wrap: pretty;
+}
+
 h1,
 h2,
 .step-label,
@@ -384,6 +397,11 @@ footer a,
   background: var(--teal);
 }
 
+/* Left-aligned headings get a left-aligned rule, not one floating mid-column */
+.section-heading:not(.centered) h2::after {
+  margin-left: 0;
+}
+
 .kicker {
   margin: 0;
   color: var(--teal-dark);
@@ -541,6 +559,8 @@ footer a,
 }
 
 .service-grid article {
+  display: flex;
+  flex-direction: column;
   overflow: hidden;
   background: #ffffff;
   border: 1px solid var(--line);
@@ -937,6 +957,15 @@ footer a,
   margin-top: 26px;
 }
 
+/* An odd last review sits centred instead of leaving an empty cell */
+@media (min-width: 981px) {
+  .quote-grid > :last-child:nth-child(odd) {
+    grid-column: 1 / -1;
+    justify-self: center;
+    width: calc(50% - 10px);
+  }
+}
+
 .quote-grid blockquote {
   margin: 0;
   padding: 26px;
@@ -1190,7 +1219,7 @@ footer {
 
 .footer-grid {
   display: grid;
-  grid-template-columns: 1.3fr 1fr 1fr 1fr;
+  grid-template-columns: 1.25fr 1fr 1.2fr 0.8fr;
   gap: clamp(26px, 4vw, 48px);
   width: min(1140px, calc(100% - 40px));
   margin: 0 auto;
@@ -1226,6 +1255,13 @@ footer {
 
 .footer-grid a {
   overflow-wrap: anywhere;
+}
+
+/* The address fits whole instead of breaking as "...saz.co / m" */
+.footer-grid a[href^="mailto:"] {
+  font-size: 0.92em;
+  overflow-wrap: normal;
+  white-space: nowrap;
 }
 
 .footer-grid a:hover {
@@ -1489,11 +1525,14 @@ footer {
 
 .service-grid article > div {
   display: flex;
+  flex: 1;
   flex-direction: column;
 }
 
+/* Every card link sits on the same line at the bottom of its card */
 .service-grid article .card-cta {
   margin-top: auto;
+  padding-top: 12px;
 }
 
 /* Prose / intro blocks on interior pages */
@@ -1702,6 +1741,21 @@ footer {
 .pricing-grid.duo {
   grid-template-columns: repeat(2, minmax(0, 320px));
   justify-content: center;
+}
+
+/* Two-line and one-line card titles end on the same baseline, so the
+   prices line up; the notes below match the cards’ width. */
+.pricing-grid.duo h3 {
+  display: flex;
+  min-height: 2.5em;
+  align-items: flex-end;
+  justify-content: center;
+}
+
+.pricing-grid.duo + .fine-print {
+  max-width: 660px;
+  margin-left: auto;
+  margin-right: auto;
 }
 
 @media (max-width: 980px) {
