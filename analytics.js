@@ -64,8 +64,9 @@
   // Which band of the page a click came from, so CTA placement can be compared.
   function zone(el) {
     if (el.closest(".site-header")) return "header";
-    if (el.closest(".mobile-bar, .sticky-bar")) return "sticky_bar";
+    if (el.closest(".mobile-bar, .sticky-bar, .mobile-sticky")) return "sticky_bar";
     if (el.closest(".cp-card")) return "popup";
+    if (el.closest(".qp-band")) return "price_box";
     if (el.closest(".hero")) return "hero";
     if (el.closest(".site-footer, footer")) return "footer";
     return "body";
@@ -83,8 +84,33 @@
         cap("contact_click", { channel: "call", zone: zone(a), page: page() });
       } else if (href.indexOf("/request-service") === 0) {
         cap("cta_click", { cta: "request", zone: zone(a), page: page(), label: (a.textContent || "").trim().slice(0, 60) });
+      } else if (href === "#price") {
+        cap("cta_click", { cta: "price_jump", zone: zone(a), page: page(), label: (a.textContent || "").trim().slice(0, 60) });
+      }
+      // Inline price box: which answers were tapped, never what they were.
+      if (a.hasAttribute("data-qp-text")) {
+        cap("qp_texted", { page: page(), filled: a.getAttribute("data-filled") || "" });
       }
     }, true);
+
+    // ---- Inline price box (rental landing pages) ----
+    var qp = document.querySelector("[data-quick-price]");
+    if (qp) {
+      if ("IntersectionObserver" in window) {
+        var qpSeen = new IntersectionObserver(function (entries) {
+          if (entries.some(function (en) { return en.isIntersecting; })) {
+            cap("qp_view", { page: page() });
+            qpSeen.disconnect();
+          }
+        }, { threshold: 0.5 });
+        qpSeen.observe(qp);
+      }
+      qp.addEventListener("hc:qp-pick", function () { cap("qp_pick", { page: page() }); });
+      qp.addEventListener("hc:qp-sent", function (e) {
+        cap("qp_sent", { page: page(), filled: (e.detail && e.detail.filled) || "", channel: (e.detail && e.detail.channel) || "" });
+      });
+      qp.addEventListener("hc:qp-error", function () { cap("qp_send_error", { page: page() }); });
+    }
 
     // ---- Contact popup: does the top-priority feature actually convert? ----
     var popupSeenAt = 0;

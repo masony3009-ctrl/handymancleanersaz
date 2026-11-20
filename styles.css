@@ -3162,3 +3162,320 @@ button.button[disabled] {
   font-size: 17px;
   font-weight: 800;
 }
+
+/* Inline price box (rental landing pages, Nov 20 2026). The popup's questions
+   moved into the page: tap buttons instead of dropdowns, and a short
+   phone-or-email form for anyone who would rather not text. */
+.qp-band {
+  padding: clamp(36px, 6vw, 64px) 0;
+  background: var(--light);
+  border-bottom: 1px solid var(--line);
+  scroll-margin-top: 80px;
+}
+
+.qp-inner {
+  display: grid;
+  grid-template-columns: 0.9fr 1.1fr;
+  gap: clamp(24px, 4vw, 48px);
+  align-items: center;
+}
+
+.qp-copy {
+  display: grid;
+  gap: 12px;
+  min-width: 0;
+}
+
+.qp-copy h2 {
+  margin: 0;
+  font-size: clamp(26px, 3.4vw, 36px);
+  line-height: 1.15;
+  text-wrap: balance;
+}
+
+.qp-copy > p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 16px;
+  line-height: 1.6;
+}
+
+.qp-proof {
+  display: grid;
+  gap: 8px;
+  margin: 6px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.qp-proof li {
+  position: relative;
+  padding-left: 26px;
+  color: var(--ink);
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.qp-proof li::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 3px;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--teal) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='3.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 12 10.5 16.5 18 8'/%3E%3C/svg%3E") center / 12px no-repeat;
+}
+
+.qp-card {
+  min-width: 0;
+  padding: clamp(18px, 3vw, 26px);
+  background: #ffffff;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  box-shadow: var(--shadow);
+}
+
+.qp-fallback {
+  margin: 0;
+  color: var(--muted);
+}
+
+.qp-box {
+  display: grid;
+  gap: 14px;
+}
+
+.qp-group {
+  display: grid;
+  gap: 7px;
+}
+
+.qp-label {
+  margin: 0;
+  color: var(--teal-dark);
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 1.3px;
+  text-transform: uppercase;
+}
+
+.qp-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+}
+
+.qp-chip {
+  min-width: 46px;
+  min-height: 42px;
+  padding: 0 14px;
+  background: #ffffff;
+  border: 1.5px solid var(--line);
+  border-radius: 999px;
+  color: var(--ink);
+  font: inherit;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: border-color 0.15s ease, background-color 0.15s ease, color 0.15s ease;
+}
+
+.qp-chip:hover {
+  border-color: var(--teal);
+}
+
+.qp-chip[aria-pressed="true"] {
+  background: var(--teal);
+  border-color: var(--teal);
+  color: #ffffff;
+}
+
+.qp-chip:focus-visible,
+.qp-alt:focus-visible {
+  outline: 3px solid var(--gold);
+  outline-offset: 2px;
+}
+
+.qp-actions {
+  display: grid;
+  gap: 10px;
+  margin-top: 4px;
+}
+
+.qp-actions .button {
+  width: 100%;
+  min-height: 50px;
+}
+
+.qp-alt {
+  padding: 6px;
+  background: none;
+  border: 0;
+  color: var(--teal-dark);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 700;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+/* Undo the request form's card styling, which every <form> gets. */
+.qp-card .qp-send {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 8px;
+  padding: 0;
+  background: none;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+}
+
+.qp-card .qp-send[hidden] {
+  display: none;
+}
+
+.qp-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.qp-send input[type="text"],
+.qp-send input[type="tel"],
+.qp-send input[type="email"] {
+  width: 100%;
+  min-width: 0;
+  padding: 11px 12px;
+  border-radius: 8px;
+  font-size: 15px;
+}
+
+.qp-card .qp-hint,
+.qp-card .qp-consent {
+  display: block;
+  margin: 0;
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.qp-consent input {
+  width: auto;
+  margin: 0 4px 0 0;
+  vertical-align: -2px;
+}
+
+.qp-consent a {
+  color: var(--teal-dark);
+}
+
+.qp-card .qp-status {
+  margin: 0;
+  color: #b42318;
+  font-size: 13.5px;
+}
+
+.qp-card .qp-status:empty {
+  display: none;
+}
+
+.qp-card .qp-done {
+  margin: 0;
+  padding: 12px 14px;
+  background: var(--light);
+  border-radius: 8px;
+  color: var(--ink);
+  font-weight: 700;
+}
+
+@media (max-width: 860px) {
+  .qp-inner {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+
+  /* Phones: keep the tap buttons near the top of the band. The proof points
+     stay, as a compact two-column block, since the band's job is to show
+     reliability right beside the ask. */
+  .qp-copy > p {
+    font-size: 15px;
+  }
+
+  .qp-proof {
+    grid-template-columns: 1fr 1fr;
+    gap: 6px 12px;
+  }
+
+  .qp-proof li {
+    padding-left: 22px;
+    font-size: 13px;
+    line-height: 1.35;
+  }
+
+  .qp-proof li::before {
+    top: 1px;
+    width: 15px;
+    height: 15px;
+    background-size: 11px;
+  }
+}
+
+@media (max-width: 420px) {
+  .qp-row {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* iOS zooms into any field under 16px */
+@media (pointer: coarse), (max-width: 980px) {
+  .qp-send input[type="text"],
+  .qp-send input[type="tel"],
+  .qp-send input[type="email"] {
+    font-size: 16px;
+  }
+}
+
+/* "You never have to be here" - for owners who live out of state. Several of
+   the longest-reading visitors in Oct-Nov 2026 were in MI, MO and LA. */
+.remote-band {
+  scroll-margin-top: 80px;
+}
+
+.remote-split {
+  display: grid;
+  grid-template-columns: 1.3fr 0.7fr;
+  gap: clamp(24px, 4vw, 56px);
+  align-items: center;
+}
+
+.remote-split > div {
+  min-width: 0;
+}
+
+.remote-cta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px 18px;
+  margin: 26px 0 0;
+  color: var(--muted);
+  font-size: 15px;
+}
+
+.remote-cta a:not(.button) {
+  color: var(--teal-dark);
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+
+.remote-split .text-proof {
+  justify-self: center;
+}
+
+@media (max-width: 860px) {
+  .remote-split {
+    grid-template-columns: 1fr;
+  }
+}

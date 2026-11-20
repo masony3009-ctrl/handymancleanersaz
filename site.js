@@ -260,6 +260,9 @@
       turnover("rental"); // was ANY (asks house cleaning vs turnover); residential paused Nov 16 2026
 
     if (location.pathname.indexOf("/request-service") === 0) return;
+    // Pages with the inline price box (below) already ask the same questions
+    // in the page itself; a second, timed copy only interrupts.
+    if (document.querySelector("[data-quick-price]")) return;
 
     function seen() {
       try {
@@ -459,6 +462,206 @@
     }
 
     setTimeout(open, DELAY_MS);
+  })();
+
+  // Inline price box on the rental landing pages (Nov 20 2026).
+  // Every paid-ad contact through Nov 19 came from the popup's "Text Me My
+  // Price", yet as a popup it appeared ~11s in and was closed ~5s later
+  // (39 shown, 1 used, Oct 28 - Nov 19). Here the same questions sit in the
+  // page itself, as one-tap buttons instead of dropdowns, and a computer (or
+  // a phone visitor who would rather not text) can send it as a short form
+  // that needs a phone OR an email (src/contactkey.js).
+  (function () {
+    var mount = document.querySelector("[data-quick-price]");
+    if (!mount) return;
+
+    var PHONE = "4808007789";
+    var noun = mount.getAttribute("data-noun") || "rental";
+    var path = location.pathname;
+    var GROUPS = [
+      ["beds", "Bedrooms", ["1", "2", "3", "4", "5+"]],
+      ["baths", "Bathrooms", ["1", "1.5", "2", "2.5", "3", "3.5", "4+"]],
+      ["city", "City", ["San Tan Valley", "Queen Creek", "Gilbert", "Mesa", "Somewhere else"]]
+    ];
+    var CAN_TEXT = !!(window.matchMedia && window.matchMedia("(pointer: coarse)").matches);
+    var v = {};
+    var picked = false;
+
+    function el(tag, cls, text) {
+      var n = document.createElement(tag);
+      if (cls) n.className = cls;
+      if (text != null) n.textContent = text;
+      return n;
+    }
+
+    function emit(name, detail) {
+      mount.dispatchEvent(new CustomEvent(name, { bubbles: true, detail: detail || {} }));
+    }
+
+    function filled() {
+      return Object.keys(v).filter(function (k) { return v[k]; }).join(",");
+    }
+
+    function msg() {
+      var size = [v.beds && v.beds + " bed", v.baths && v.baths + " bath"].filter(Boolean).join(" / ");
+      var where = v.city && v.city !== "Somewhere else" ? " in " + v.city : "";
+      return "Hi! What would a turnover cost for my " + (size ? size + " " : "") + noun + where + "?";
+    }
+
+    var card = el("div", "qp-box");
+    card.setAttribute("aria-label", "Turnover price check");
+
+    GROUPS.forEach(function (g) {
+      var group = el("div", "qp-group");
+      var label = el("p", "qp-label", g[1]);
+      label.id = "qp-" + g[0];
+      group.appendChild(label);
+      var chips = el("div", "qp-chips");
+      chips.setAttribute("role", "group");
+      chips.setAttribute("aria-labelledby", label.id);
+      g[2].forEach(function (opt) {
+        var b = el("button", "qp-chip", opt);
+        b.type = "button";
+        b.setAttribute("aria-pressed", "false");
+        b.addEventListener("click", function () {
+          var on = v[g[0]] !== opt;
+          v[g[0]] = on ? opt : "";
+          Array.prototype.forEach.call(chips.children, function (c) {
+            c.setAttribute("aria-pressed", String(on && c === b));
+          });
+          update();
+          if (!picked) { picked = true; emit("hc:qp-pick"); }
+        });
+        chips.appendChild(b);
+      });
+      group.appendChild(chips);
+      card.appendChild(group);
+    });
+
+    var actions = el("div", "qp-actions");
+    var text = el("a", "button primary qp-text", "Text Me My Price");
+    text.setAttribute("data-qp-text", "");
+
+    function update() {
+      text.href = "sms:" + PHONE + "?&body=" + encodeURIComponent(msg());
+      text.setAttribute("data-filled", filled());
+    }
+    update();
+
+    function input(type, name, placeholder, auto) {
+      var i = el("input", "ph-no-capture");
+      i.type = type;
+      i.name = name;
+      i.placeholder = placeholder;
+      i.setAttribute("aria-label", placeholder);
+      i.autocomplete = auto;
+      return i;
+    }
+
+    var form = el("form", "qp-send");
+    form.noValidate = true;
+    var name = input("text", "Name", "Your name", "name");
+    var phone = input("tel", "Phone", "Mobile number", "tel");
+    var email = input("email", "Email", "Email", "email");
+    phone.inputMode = "tel";
+    var hint = el("p", "qp-hint", "A phone or an email is enough. We reply within 30 minutes, 9 AM–9 PM.");
+
+    var consent = el("label", "qp-consent");
+    var box = el("input");
+    box.type = "checkbox";
+    consent.appendChild(box);
+    consent.appendChild(document.createTextNode(" I agree to the "));
+    var privacy = el("a", null, "Privacy Policy");
+    privacy.href = "/privacy/";
+    var terms = el("a", null, "Terms");
+    terms.href = "/terms/";
+    consent.appendChild(privacy);
+    consent.appendChild(document.createTextNode(" and "));
+    consent.appendChild(terms);
+    consent.appendChild(document.createTextNode("."));
+
+    var send = el("button", "button primary", "Send Me My Price");
+    send.type = "submit";
+    var status = el("p", "qp-status");
+    status.setAttribute("role", "status");
+    var row = el("div", "qp-row");
+    row.appendChild(phone);
+    row.appendChild(email);
+    [name, row, hint, consent, send, status].forEach(function (n) { form.appendChild(n); });
+
+    function fail(message, field) {
+      status.textContent = message;
+      if (field) field.focus();
+    }
+
+    form.addEventListener("submit", function (e) {
+      e.preventDefault();
+      if (send.disabled) return;
+      var digits = phone.value.replace(/\D/g, "");
+      var mail = email.value.trim();
+      if (!name.value.trim()) return fail("Please add your name.", name);
+      if (!digits && !mail) return fail("Please add a phone number or an email so we can send your price.", phone);
+      if (digits && (digits.length < 10 || digits.length > 15)) return fail("Please check the phone number - it should have 10 digits.", phone);
+      if (mail && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(mail)) return fail("Please check the email address.", email);
+      if (!box.checked) return fail("Please check the box agreeing to the Privacy Policy and Terms.", box);
+
+      var data = {
+        "Name": name.value,
+        "Phone": phone.value,
+        "Email": mail,
+        "Service type": "turnover",
+        "Message": msg() + " (sent from the price box on " + path + ")",
+        "Acknowledgment": "Agreed to Privacy Policy and Terms",
+        "Google click ID": typeof window.hcClickId === "function" ? window.hcClickId() : ""
+      };
+      if (v.beds) data["Bedrooms"] = v.beds;
+      if (v.baths) data["Bathrooms"] = v.baths;
+      if (v.city && v.city !== "Somewhere else") data["Address"] = v.city + ", AZ";
+
+      send.disabled = true;
+      send.textContent = "Sending…";
+      status.textContent = "";
+      fetch("/api/request", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data)
+      }).then(function (res) {
+        return res.json().catch(function () { return {}; }).then(function (body) {
+          if (!res.ok || !body.ok) throw new Error(body.error || "");
+        });
+      }).then(function () {
+        var to = digits ? phone.value : mail;
+        form.replaceWith(el("p", "qp-done", "Got it! We’ll send your price to " + to +
+          " within 30 minutes (9 AM–9 PM)."));
+        emit("hc:qp-sent", { filled: filled(), channel: digits ? "phone" : "email" });
+      }).catch(function (err) {
+        send.disabled = false;
+        send.textContent = "Send Me My Price";
+        fail((err.message || "That didn’t go through.") + " You can also call or text Mason at 480-800-7789.");
+        emit("hc:qp-error");
+      });
+    });
+
+    if (CAN_TEXT) {
+      // Phones: one tap opens a ready-to-send text. The form stays folded
+      // for anyone who would rather not text.
+      actions.appendChild(text);
+      var alt = el("button", "qp-alt", "Rather not text? Send it here instead");
+      alt.type = "button";
+      alt.setAttribute("aria-expanded", "false");
+      form.hidden = true;
+      alt.addEventListener("click", function () {
+        form.hidden = false;
+        alt.setAttribute("aria-expanded", "true");
+        alt.hidden = true;
+        name.focus();
+      });
+      actions.appendChild(alt);
+    }
+    actions.appendChild(form);
+    card.appendChild(actions);
+
+    mount.replaceChildren(card);
   })();
 
   // Homepage section chip bar: highlight the section currently in view.

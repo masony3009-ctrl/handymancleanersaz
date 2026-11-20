@@ -331,7 +331,7 @@ function dashboardPage(nonce) {
   var REVIEW_LINK = "https://g.page/r/Cc5ISKbItioTEBM/review";
 
   function reviewLink(parent, name, phone) {
-    if (!phone) return;
+    if (!dialable(phone)) return;
     var first = String(name || "").trim().split(" ")[0];
     // Asks everyone unconditionally and invites honest feedback either way.
     // Google's policy forbids "review gating" - only soliciting reviews from
@@ -366,13 +366,23 @@ function dashboardPage(nonce) {
     return qDigits.length >= 4 && (r.phone || "").indexOf(qDigits) !== -1;
   }
 
+  // Email-only clients are stored under "email:<address>" (src/contactkey.js),
+  // which must never become a tel: or sms: link.
+  function dialable(phone) {
+    return /^\\d{10,15}$/.test(String(phone || ""));
+  }
+
   function contactLinks(parent, phone, email) {
-    var tel = el("a", null, phone);
-    tel.href = "tel:" + phone;
-    parent.appendChild(tel);
-    var sms = el("a", "act", "Text");
-    sms.href = "sms:" + phone;
-    parent.appendChild(sms);
+    if (dialable(phone)) {
+      var tel = el("a", null, phone);
+      tel.href = "tel:" + phone;
+      parent.appendChild(tel);
+      var sms = el("a", "act", "Text");
+      sms.href = "sms:" + phone;
+      parent.appendChild(sms);
+    } else {
+      parent.appendChild(el("span", null, "No phone (email only)"));
+    }
     // Guard the mailto against header injection (?bcc=...&body=...) from a
     // crafted submission - keep only a plain address-shaped value.
     var addr = String(email || "").split(/[?&]/)[0];

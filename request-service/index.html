@@ -105,17 +105,17 @@
                   <input name="Name" type="text" autocomplete="name" maxlength="100" required>
                 </label>
                 <label>
-                  Phone
-                  <!-- pattern mirrors the server rule in src/index.js: 10-15 digits
+                  Phone <span class="optional">(for a text back)</span>
+                  <!-- pattern mirrors the server rule in src/contactkey.js: 10-15 digits
                        once non-digits are stripped, so spaces, dashes, dots and
-                       parentheses are all fine. Keep the two in step. -->
+                       parentheses are all fine. Keep the two in step. A phone OR
+                       an email is required - enforced in the submit handler. -->
                   <input name="Phone" type="tel" inputmode="tel" autocomplete="tel" maxlength="30"
                          pattern="(?:\D*\d){10,15}\D*"
-                         title="Enter a phone number with 10 to 15 digits — for example 480-800-7789"
-                         required>
+                         title="Enter a phone number with 10 to 15 digits — for example 480-800-7789">
                 </label>
                 <label class="full">
-                  Email
+                  Email <span class="optional">(or leave the phone blank and we&rsquo;ll reply here)</span>
                   <input name="Email" type="email" autocomplete="email" maxlength="254" placeholder="name@example.com">
                 </label>
                 <label class="full">
@@ -483,6 +483,17 @@
           Array.prototype.forEach.call(form.querySelectorAll("[data-req]"), function (f) {
             if (!missing && !f.closest(".svc-fields[hidden]") && !(f.value || "").trim()) missing = f;
           });
+          // A phone OR an email is enough; neither is refused here with a
+          // reason instead of the server's 400 (src/contactkey.js).
+          var phoneField = form.elements["Phone"];
+          var emailField = form.elements["Email"];
+          if (!missing && phoneField && emailField &&
+              !phoneField.value.trim() && !emailField.value.trim()) {
+            setStatus("Please add a phone number or an email so we can send your price.", true);
+            phoneField.focus();
+            form.dispatchEvent(new CustomEvent("hc:form-validation-block", { detail: { field: "Phone" } }));
+            return;
+          }
           if (missing) {
             var label = missing.closest("label");
             var fieldName = label ? label.textContent.trim().split("\n")[0].trim().toLowerCase() : "required field";

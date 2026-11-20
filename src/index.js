@@ -8,6 +8,7 @@ import { handleConversionsFeed } from "./conversions.js";
 import { handleMicrosoftConversionsFeed } from "./msconversions.js";
 import { handleContactTap, ContactTapError } from "./contacts.js";
 import { handleAdLanding } from "./adlanding.js";
+import { checkContact } from "./contactkey.js";
 
 const DEST = "handymancleanersaz@gmail.com";
 // Sent from the outreach. subdomain, which keeps its own Cloudflare Email
@@ -280,19 +281,20 @@ async function handleRequestForm(request, env) {
   }
 
   // Validate the required contact basics.
+  // A phone OR an email is enough (see src/contactkey.js for why).
   const name = singleLine(fields["Name"], 100);
-  const phoneRaw = singleLine(fields["Phone"], 30);
-  const phone = phoneRaw.replace(/\D/g, "");
   const email = singleLine(fields["Email"], 254);
   const serviceType = SERVICE_TYPES.get(singleLine(fields["Service type"], 100));
   const consent = clean(fields["Acknowledgment"]);
 
-  if (!name || phone.length < 10 || phone.length > 15 || !serviceType) {
-    return json({ ok: false, error: "Please fill in your name, a valid phone number, and the service you need." }, 400);
+  if (!name || !serviceType) {
+    return json({ ok: false, error: "Please fill in your name and the service you need." }, 400);
   }
-  if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-    return json({ ok: false, error: "Please enter a valid email address or leave the email field blank." }, 400);
+  const contact = checkContact(singleLine(fields["Phone"], 30), email);
+  if (!contact.ok) {
+    return json({ ok: false, error: contact.error }, 400);
   }
+  const phone = contact.key; // digits, or "email:<address>" for an email-only client
   if (!consent) {
     return json({ ok: false, error: "Please check the box agreeing to the Privacy Policy and Terms." }, 400);
   }
@@ -449,7 +451,7 @@ async function sendPushAlert(env, fields, serviceType, requestedDate, turntrackS
   // underscore or angle bracket would break the message or worse.
   const body = [
     line(fields["Name"] || "", 60),
-    line(fields["Phone"] || "", 30),
+    line(fields["Phone"] || "", 30) || "No phone - reply by email: " + line(fields["Email"] || "", 80),
     requestedDate ? line(requestedDate, 60) : "",
     turntrackStatus ? "TurnTrack: " + turntrackStatus : "",
   ].filter(Boolean).join("\n");
