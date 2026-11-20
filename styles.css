@@ -551,6 +551,7 @@ footer a,
 .service-grid img {
   display: block;
   width: 100%;
+  height: auto; /* else a height attribute on the img (the Vrbo card's 675) beats aspect-ratio */
   aspect-ratio: 16 / 11;
   object-fit: cover;
 }
